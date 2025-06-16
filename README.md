@@ -25,7 +25,7 @@ Then set up the servers:
 Make sure you have the config file in your current directory. Then run HAProxy:  
   `docker run -d --name haproxy --net mynetwork -v "${PWD}\haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro" -p 80:80 -p 8404:8404 haproxytech/haproxy-alpine:2.4`  
 
-You can simulate a request by visiting https://localhost and you can view the dashboard by visiting https://localhost:8404  
+You can simulate a request by visiting http://localhost and you can view the dashboard by visiting http://localhost:8404  
 
 To stop and remove the containers, run these lines:  
 `docker stop web1; docker rm web1`  
