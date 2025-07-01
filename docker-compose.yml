@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  # Echo servers representing different geographic regions
+  web1:
+    image: ealen/echo-server
+    container_name: web1
+    environment:
+      - ECHO_SERVER_TEXT=Hello from US West (Low Carbon)
+    networks:
+      - mynetwork
+
+  web2:
+    image: ealen/echo-server
+    container_name: web2
+    environment:
+      - ECHO_SERVER_TEXT=Hello from US Central (Moderate Carbon)
+    networks:
+      - mynetwork
+
+  web3:
+    image: ealen/echo-server
+    container_name: web3
+    environment:
+      - ECHO_SERVER_TEXT=Hello from US East (Higher Carbon)
+    networks:
+      - mynetwork
+
+  # HAProxy load balancer
+  haproxy:
+    image: haproxytech/haproxy-alpine:2.4
+    container_name: haproxy
+    ports:
+      - "80:80"      # Main HTTP traffic
+      - "8404:8404"  # Stats dashboard
+    volumes:
+      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - haproxy_sockets:/var/run:rw  # Shared socket directory with read/write
+    networks:
+      - mynetwork
+    depends_on:
+      - web1
+      - web2
+      - web3
+
+  # Carbon intensity controller
+  carbon-controller:
+    image: python:3.11-slim
+    container_name: carbon-controller
+    working_dir: /app
+    user: "0:0"  # Run as root to access socket
+    command: >
+      sh -c "pip install requests python-dotenv &&
+             python carbon_controller.py"
+    volumes:
+      - ./carbon_controller.py:/app/carbon_controller.py:ro
+      - ./.env:/app/.env:ro
+      - haproxy_sockets:/var/run:rw  # Access HAProxy admin socket with read/write
+    networks:
+      - mynetwork
+    depends_on:
+      - haproxy
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
+networks:
+  mynetwork:
+    driver: bridge
+
+volumes:
+  haproxy_sockets: 
