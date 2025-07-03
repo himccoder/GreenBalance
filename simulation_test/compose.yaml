@@ -1,0 +1,44 @@
+services:
+  server1:
+    build: ./server
+    container_name: server1
+    environment:
+      RESPONSE_TEXT: "hello from server 1"
+      SERVER_ID: "1"
+    networks:
+      - mynetwork
+
+  server2:
+    build: ./server
+    container_name: server2
+    environment:
+      RESPONSE_TEXT: "hello from server 2"
+      SERVER_ID: "2"
+    networks:
+      - mynetwork
+
+  server3:
+    build: ./server
+    container_name: server3
+    environment:
+      RESPONSE_TEXT: "hello from server 3"
+      SERVER_ID: "3"
+    networks:
+      - mynetwork
+
+  haproxy:
+    image: haproxytech/haproxy-alpine:2.4
+    container_name: haproxy
+    ports:
+      - "80:80"
+      - "8404:8404"
+      - "5555:5555"
+    volumes:
+      - ./haproxy/haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
+      - ./haproxy:/usr/local/etc/haproxy:rw haproxytech/haproxy-ubuntu
+    networks:
+      - mynetwork
+
+networks:
+  mynetwork:
+    driver: bridge
