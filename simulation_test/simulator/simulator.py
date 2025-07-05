@@ -33,7 +33,7 @@ def set_weight(server, weight):
 def calculate_weight(carbon_intensity, latency = 0):
     return 100 / carbon_intensity
 
-if __name__ == "__main__":
+def run_simulation():
     print("beginning simulation")
 
     L1 = [5, 10, 20]
@@ -52,3 +52,17 @@ if __name__ == "__main__":
         else:
             print(f"Error handling request number {i + 1}: {response.status_code} - {response.text}")
 
+def simulation_test():
+    print("simulation test")
+
+    print("testing")
+    url = "http://localhost:5555/v3/info"
+    response = requests.get(url, auth=HTTPBasicAuth('admin', 'password'))
+    print(response.status_code)
+    print(response.text)
+
+    print("test complete")
+
+if __name__ == "__main__":
+    simulation_test()
+    # run_simulation()

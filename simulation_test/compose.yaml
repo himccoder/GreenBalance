@@ -39,6 +39,12 @@ services:
     networks:
       - mynetwork
 
+  simulator:
+    build: ./simulator
+    container_name: simulator
+    networks:
+      - mynetwork
+
 networks:
   mynetwork:
     driver: bridge
