@@ -1,0 +1,9 @@
+# WattTime API Credentials
+# Copy this file to .env and add your credentials
+# Get these from: https://www.watttime.org/api-documentation/
+
+WATTTIME_USERNAME=your_username_here
+WATTTIME_PASSWORD=your_password_here
+
+# Optional: If you want to test without WattTime, leave these empty
+# The app will show demo carbon data instead 

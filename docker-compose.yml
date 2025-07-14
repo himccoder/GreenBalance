@@ -6,67 +6,100 @@ services:
     image: ealen/echo-server
     container_name: web1
     environment:
-      - ECHO_SERVER_TEXT=Hello from US West (Low Carbon)
+      - ECHO_SERVER_TEXT=Hello from US West (California) - Low Carbon Server
     networks:
-      - mynetwork
+      - greencdn_network
+    ports:
+      - "8001:80"
 
   web2:
     image: ealen/echo-server
     container_name: web2
     environment:
-      - ECHO_SERVER_TEXT=Hello from US Central (Moderate Carbon)
+      - ECHO_SERVER_TEXT=Hello from US Central (Texas) - Moderate Carbon Server
     networks:
-      - mynetwork
+      - greencdn_network
+    ports:
+      - "8002:80"
 
   web3:
     image: ealen/echo-server
     container_name: web3
     environment:
-      - ECHO_SERVER_TEXT=Hello from US East (Higher Carbon)
+      - ECHO_SERVER_TEXT=Hello from US East (Mid-Atlantic) - Higher Carbon Server
     networks:
-      - mynetwork
-
-  # HAProxy load balancer
-  haproxy:
-    image: haproxytech/haproxy-alpine:2.4
-    container_name: haproxy
+      - greencdn_network
     ports:
-      - "80:80"      # Main HTTP traffic
-      - "8404:8404"  # Stats dashboard
+      - "8003:80"
+
+  # HAProxy load balancer with dataplane API and stats dashboard
+  haproxy:
+    image: "haproxytech/haproxy-ubuntu:2.5"
+    container_name: haproxy
     volumes:
-      - ./haproxy.cfg:/usr/local/etc/haproxy/haproxy.cfg:ro
-      - haproxy_sockets:/var/run:rw  # Shared socket directory with read/write
+      - "./haproxy:/usr/local/etc/haproxy/"
+    ports:
+      - "80:80"        # Main HTTP traffic
+      - "5555:5555"    # Dataplane API
+      - "8404:8404"    # Stats dashboard
     networks:
-      - mynetwork
+      - greencdn_network
     depends_on:
       - web1
       - web2
       - web3
 
-  # Carbon intensity controller
-  carbon-controller:
-    image: python:3.11-slim
-    container_name: carbon-controller
-    working_dir: /app
-    user: "0:0"  # Run as root to access socket
-    command: >
-      sh -c "pip install requests python-dotenv &&
-             python carbon_controller.py"
+  # Flask weight manager dashboard
+  weight-manager:
+    build:
+      context: .
+      dockerfile: Dockerfile.manager
+    container_name: weight-manager
+    ports:
+      - "5000:5000"
     volumes:
-      - ./carbon_controller.py:/app/carbon_controller.py:ro
-      - ./.env:/app/.env:ro
-      - haproxy_sockets:/var/run:rw  # Access HAProxy admin socket with read/write
-    networks:
-      - mynetwork
-    depends_on:
-      - haproxy
+      - ".:/app"
     environment:
       - PYTHONUNBUFFERED=1
+    networks:
+      - greencdn_network
+    depends_on:
+      - haproxy
+
+  # Flask weight viewer (shows highest weight server)
+  weight-viewer:
+    build:
+      context: .
+      dockerfile: Dockerfile.viewer
+    container_name: weight-viewer
+    ports:
+      - "5001:5001"
+    volumes:
+      - ".:/app"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - greencdn_network
+    depends_on:
+      - haproxy
+      - weight-manager
+
+  # Carbon controller (continuous weight updates)
+  carbon-controller:
+    build:
+      context: .
+      dockerfile: Dockerfile.carbon
+    container_name: carbon-controller
+    volumes:
+      - ".:/app"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - greencdn_network
+    depends_on:
+      - haproxy
     restart: unless-stopped
 
 networks:
-  mynetwork:
+  greencdn_network:
     driver: bridge
-
-volumes:
-  haproxy_sockets: 

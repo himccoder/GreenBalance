@@ -1,0 +1,1038 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HAProxy Weight Manager</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f2faf2;
+            min-height: 100vh;
+            color: #1a1a1a;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(34, 139, 34, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(76, 175, 80, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.8) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .header {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 139, 34, 0.15);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(34, 139, 34, 0.05) 0%, transparent 50%);
+            pointer-events: none;
+        }
+        
+        .header h1 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            background: linear-gradient(135deg, #2e7d32 0%, #4caf50 50%, #1b5e20 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 8px rgba(34, 139, 34, 0.1);
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 1.5rem;
+            color: #424242;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header-links {
+            display: flex;
+            gap: 1.5rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .header-link {
+            background: rgba(34, 139, 34, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 139, 34, 0.2);
+            color: #2e7d32;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(34, 139, 34, 0.1);
+        }
+        
+        .header-link:hover {
+            background: rgba(34, 139, 34, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(34, 139, 34, 0.2);
+            color: #1b5e20;
+            text-decoration: none;
+        }
+        
+        .alerts {
+            margin-bottom: 2rem;
+        }
+        
+        .alert {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 16px;
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            animation: slideIn 0.4s ease;
+        }
+        
+        .alert.success {
+            border-left: 4px solid #4caf50;
+            background: rgba(255, 255, 255, 0.95);
+            color: #2e7d32;
+        }
+        
+        .alert.error {
+            border-left: 4px solid #f44336;
+            background: rgba(255, 255, 255, 0.95);
+            color: #c62828;
+        }
+        
+        .alert.warning {
+            border-left: 4px solid #ffd700;
+            background: rgba(255, 255, 255, 0.95);
+            color: #f57f17;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 139, 34, 0.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.05),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(34, 139, 34, 0.2), transparent);
+        }
+        
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 12px 40px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+        
+        .servers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .server-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .server-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #4caf50 0%, #8bc34a 100%);
+            border-radius: 0 2px 2px 0;
+        }
+        
+        .server-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 
+                0 16px 48px rgba(0, 0, 0, 0.1),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            border-color: rgba(255, 215, 0, 0.4);
+        }
+        
+        .server-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1b5e20;
+            margin-bottom: 0.75rem;
+            text-shadow: 0 1px 3px rgba(27, 94, 32, 0.1);
+        }
+        
+        .server-details {
+            color: #616161;
+            margin-bottom: 1.5rem;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .carbon-info {
+            background: rgba(76, 175, 80, 0.05);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .carbon-intensity {
+            font-weight: 600;
+            color: #2e7d32;
+            font-size: 1.1rem;
+        }
+        
+        .carbon-type {
+            font-size: 0.85rem;
+            color: #4caf50;
+            margin-left: 0.5rem;
+        }
+        
+        .carbon-region {
+            font-size: 0.9rem;
+            color: #616161;
+            margin-top: 0.25rem;
+        }
+        
+        .weight-info {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+        
+        .weight-display {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #2e7d32 0%, #4caf50 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
+        }
+        
+        .percentage {
+            background: rgba(255, 215, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            color: #f57f17;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(255, 215, 0, 0.1);
+        }
+        
+        .weight-form {
+            display: flex;
+            gap: 0.75rem;
+        }
+        
+        .weight-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+            color: #1a1a1a;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+        }
+        
+        .weight-input:focus {
+            outline: none;
+            border-color: rgba(46, 125, 50, 0.5);
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.1);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .weight-input::placeholder {
+            color: rgba(26, 26, 26, 0.6);
+        }
+        
+        .btn {
+            background: rgba(34, 139, 34, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(34, 139, 34, 0.2);
+            color: #2e7d32;
+            padding: 0.75rem 1.5rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(34, 139, 34, 0.1);
+        }
+        
+        .btn:hover {
+            background: rgba(34, 139, 34, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(34, 139, 34, 0.2);
+            color: #1b5e20;
+            text-decoration: none;
+        }
+        
+        .btn-green {
+            background: rgba(76, 175, 80, 0.1);
+            border: 1px solid rgba(76, 175, 80, 0.2);
+            color: #2e7d32;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.1);
+        }
+        
+        .btn-green:hover {
+            background: rgba(76, 175, 80, 0.15);
+            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.2);
+            color: #1b5e20;
+        }
+        
+        .preset-buttons {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1b5e20;
+            margin-bottom: 1rem;
+            text-shadow: 0 1px 3px rgba(27, 94, 32, 0.1);
+        }
+        
+        .section-description {
+            color: #424242;
+            margin-bottom: 1.5rem;
+            opacity: 0.9;
+        }
+        
+        .status-bar {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
+            color: #424242;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #4caf50;
+            margin-right: 0.5rem;
+            box-shadow: 0 0 10px rgba(76, 175, 80, 0.8);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .header h1 {
+                font-size: 2.5rem;
+            }
+            
+            .servers-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+            
+            .weight-form {
+                flex-direction: column;
+            }
+            
+            .preset-buttons {
+                flex-direction: column;
+            }
+            
+            .header-links {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    
+    <style>
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+        
+        .toast {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 139, 34, 0.2);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            min-width: 300px;
+            max-width: 400px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .toast.success {
+            border-left: 4px solid #4caf50;
+        }
+        
+        .toast.info {
+            border-left: 4px solid #2196f3;
+        }
+        
+        .toast.warning {
+            border-left: 4px solid #f57f17;
+        }
+        
+        .toast::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.6), transparent);
+        }
+        
+        .toast-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            color: #1b5e20;
+            font-size: 0.95rem;
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #616161;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        
+        .toast-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #1b5e20;
+        }
+        
+        .toast-message {
+            color: #424242;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .toast-details {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.8rem;
+            color: #616161;
+        }
+        
+        @media (max-width: 768px) {
+            .toast-container {
+                top: 1rem;
+                right: 1rem;
+                left: 1rem;
+            }
+            
+            .toast {
+                min-width: auto;
+                max-width: none;
+            }
+        }
+        
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+        
+        .toast {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 139, 34, 0.2);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            box-shadow: 
+                0 8px 32px rgba(0, 0, 0, 0.12),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            min-width: 300px;
+            max-width: 400px;
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: auto;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        
+        .toast.success {
+            border-left: 4px solid #4caf50;
+        }
+        
+        .toast.info {
+            border-left: 4px solid #2196f3;
+        }
+        
+        .toast.warning {
+            border-left: 4px solid #f57f17;
+        }
+        
+        .toast::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, rgba(76, 175, 80, 0.6), transparent);
+        }
+        
+        .toast-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        
+        .toast-title {
+            font-weight: 600;
+            color: #1b5e20;
+            font-size: 0.95rem;
+        }
+        
+        .toast-close {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            color: #616161;
+            cursor: pointer;
+            padding: 0;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s ease;
+        }
+        
+        .toast-close:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #1b5e20;
+        }
+        
+        .toast-message {
+            color: #424242;
+            font-size: 0.85rem;
+            line-height: 1.4;
+        }
+        
+        .toast-details {
+            margin-top: 0.5rem;
+            padding-top: 0.5rem;
+            border-top: 1px solid rgba(0, 0, 0, 0.1);
+            font-size: 0.8rem;
+            color: #616161;
+        }
+        
+        @media (max-width: 768px) {
+            .toast-container {
+                top: 1rem;
+                right: 1rem;
+                left: 1rem;
+            }
+            
+            .toast {
+                min-width: auto;
+                max-width: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+    <div class="container">
+        <div class="header">
+            <h1>⚖️ Green CDN Manager</h1>
+            <p>Backend: <strong>{{ backend }}</strong></p>
+            <div class="header-links">
+                <a href="/haproxy-stats" target="_blank" class="header-link">
+                    HAProxy Dashboard
+                </a>
+                <a href="http://localhost:5001" target="_blank" class="header-link">
+                    Weight Viewer
+                </a>
+            </div>
+        </div>
+        
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="alerts">
+                    {% for category, message in messages %}
+                        <div class="alert {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Carbon-Aware Controls -->
+        {% if watttime_available %}
+        <div class="glass-card">
+            <h3 class="section-title">🌱 Carbon-Aware Load Balancing</h3>
+            <p class="section-description">
+                Automatically adjust weights based on real-time carbon intensity data.
+                <strong>Lower carbon regions get higher weights!</strong>
+            </p>
+            <div class="preset-buttons">
+                <a href="{{ url_for('update_carbon_weights') }}" class="btn btn-green">
+                    🌱 Update Carbon Weights
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Quick Presets -->
+        <div class="glass-card">
+            <h3 class="section-title">Manual Presets</h3>
+            <div class="preset-buttons">
+                <a href="{{ url_for('apply_preset', preset_name='equal') }}" class="btn">
+                    Equal Weights (50/50/50)
+                </a>
+                <a href="{{ url_for('apply_preset', preset_name='west_heavy') }}" class="btn">
+                    West Heavy (100/30/20)
+                </a>
+                <a href="{{ url_for('apply_preset', preset_name='central_heavy') }}" class="btn">
+                    Central Heavy (20/100/30)
+                </a>
+                <a href="{{ url_for('apply_preset', preset_name='east_heavy') }}" class="btn">
+                    East Heavy (20/30/100)
+                </a>
+                <a href="{{ url_for('apply_preset', preset_name='default') }}" class="btn">
+                    Reset (1/1/1)
+                </a>
+            </div>
+        </div>
+        
+        <!-- Server Cards -->
+        <div class="servers-grid">
+            {% for server in servers %}
+            <div class="server-card">
+                <div class="server-name">
+                    {{ server.name }}
+                </div>
+                <div class="server-details">
+                    {{ server.address }}:{{ server.port }}
+                </div>
+                
+                <!-- Carbon Intensity Info -->
+                {% if server.carbon and server.carbon.intensity != 'N/A' %}
+                <div class="carbon-info">
+                    <div class="carbon-intensity">
+                        🌱 {{ "%.1f"|format(server.carbon.intensity) }} lbs CO2/MWh
+                        <span class="carbon-type">
+                            {% if server.carbon.type == 'real' %}
+                                (Real-time)
+                            {% elif server.carbon.type == 'simulated' %}
+                                (Simulated)
+                            {% elif server.carbon.type == 'mock' %}
+                                (Demo)
+                            {% else %}
+                                (Fallback)
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="carbon-region">{{ server.carbon.name }}</div>
+                </div>
+                {% endif %}
+                
+                <div class="weight-info">
+                    <div class="weight-display">{{ server.weight }}</div>
+                    <div class="percentage">{{ "%.1f"|format(server.percentage) }}%</div>
+                </div>
+               
+               <form method="POST" action="{{ url_for('change_weight') }}" class="weight-form">
+                   <input type="hidden" name="server_name" value="{{ server.name }}">
+                   <input 
+                       type="number" 
+                       name="new_weight" 
+                       class="weight-input"
+                       min="1" 
+                       max="256" 
+                       placeholder="New weight (1-256)"
+                       required
+                   >
+                   <button type="submit" class="btn">Update</button>
+               </form>
+           </div>
+           {% else %}
+               <div class="server-card">
+                   <div class="server-name">No servers found</div>
+                   <div class="server-details">
+                       Check HAProxy configuration and dataplane API connection
+                   </div>
+               </div>
+           {% endfor %}
+        </div>
+        
+        <!-- Status Bar -->
+        <div class="status-bar">
+            <span class="status-indicator"></span>
+            Connected to HAProxy Dataplane API at localhost:5555
+            <br><br>
+            <strong>Total Active Servers:</strong> {{ servers|length }}
+            {% if servers %}
+                | <strong>Total Weight:</strong> {{ servers|sum(attribute='weight') }}
+            {% endif %}
+        </div>
+    </div>
+    
+    <script>
+        // Toast notification system
+        function showToast(title, message, type = 'info', details = null, duration = 5000) {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            toast.innerHTML = `
+                <div class="toast-header">
+                    <div class="toast-title">${title}</div>
+                    <button class="toast-close" onclick="removeToast(this.parentElement.parentElement)">×</button>
+                </div>
+                <div class="toast-message">${message}</div>
+                ${details ? `<div class="toast-details">${details}</div>` : ''}
+            `;
+            
+            container.appendChild(toast);
+            
+            // Trigger animation
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Auto remove
+            setTimeout(() => removeToast(toast), duration);
+            
+            return toast;
+        }
+        
+        function removeToast(toast) {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    toast.parentElement.removeChild(toast);
+                }
+            }, 400);
+        }
+
+        // Handle carbon weight updates via AJAX
+        async function updateCarbonWeights() {
+            try {
+                const response = await fetch('/carbon/update', {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success toast with main message
+                    showToast(
+                        '🌱 Carbon Weights Applied',
+                        data.message,
+                        'success',
+                        null,
+                        5000
+                    );
+                    
+                    // Show individual server updates
+                    data.updates.forEach((update, index) => {
+                        setTimeout(() => {
+                            showToast(
+                                'Weight Updated',
+                                `${update.region}: ${update.intensity.toFixed(1)} CO2 → Weight ${update.weight}`,
+                                'info',
+                                null,
+                                4000
+                            );
+                        }, (index + 1) * 500); // Stagger the toasts
+                    });
+                    
+                    // Refresh page after showing all toasts
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, (data.updates.length + 1) * 500 + 2000);
+                } else {
+                    showToast(
+                        'Partial Update',
+                        data.message || 'Some servers could not be updated',
+                        'warning',
+                        data.errors ? data.errors.join(', ') : null,
+                        6000
+                    );
+                }
+            } catch (error) {
+                showToast(
+                    'Update Failed',
+                    'Could not update carbon weights',
+                    'warning',
+                    error.message,
+                    5000
+                );
+            }
+        }
+
+        // Handle preset updates via AJAX
+        async function applyPreset(presetName, presetDisplayName) {
+            try {
+                const response = await fetch(`/preset/${presetName}`, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Show success toast with main message
+                    showToast(
+                        'Preset Applied',
+                        data.message,
+                        'success',
+                        null,
+                        4000
+                    );
+                    
+                    // Show individual server updates
+                    data.updates.forEach((update, index) => {
+                        setTimeout(() => {
+                            showToast(
+                                'Weight Set',
+                                `${update.region}: Weight ${update.weight}`,
+                                'info',
+                                null,
+                                3000
+                            );
+                        }, (index + 1) * 400); // Stagger the toasts
+                    });
+                    
+                    // Refresh page after showing all toasts
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, (data.updates.length + 1) * 400 + 1500);
+                } else {
+                    showToast(
+                        'Partial Update',
+                        data.message || 'Some servers could not be updated',
+                        'warning',
+                        data.errors ? data.errors.join(', ') : null,
+                        5000
+                    );
+                }
+            } catch (error) {
+                showToast(
+                    'Update Failed',
+                    `Could not apply ${presetDisplayName} preset`,
+                    'warning',
+                    error.message,
+                    4000
+                );
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle carbon update button clicks
+            const carbonUpdateBtn = document.querySelector('a[href*="carbon/update"]');
+            if (carbonUpdateBtn) {
+                carbonUpdateBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    updateCarbonWeights();
+                });
+            }
+            
+            // Handle preset button clicks
+            const presetButtons = document.querySelectorAll('a[href*="/preset/"]');
+            presetButtons.forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const href = this.getAttribute('href');
+                    const presetName = href.split('/preset/')[1];
+                    const presetDisplayName = this.textContent.trim();
+                    applyPreset(presetName, presetDisplayName);
+                });
+            });
+        });
+
+        // Auto-refresh every 30 seconds (as backup)
+        setTimeout(function() {
+            location.reload();
+        }, 30000);
+        
+        // Add some interactivity
+        document.querySelectorAll('.weight-input').forEach(input => {
+            input.addEventListener('focus', function() {
+                this.select();
+            });
+        });
+        
+        // Add smooth transitions for cards
+        document.querySelectorAll('.server-card, .glass-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-8px)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+            });
+        });
+    </script>
+</body>
+</html> 

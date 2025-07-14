@@ -1,158 +1,199 @@
-# 🌱 Green CDN - Carbon-Aware Load Balancing
+# 🌱 Green CDN - Carbon-Aware Load Balancing System
 
-Routes traffic to servers in regions with cleaner energy using real-time carbon data.
+A complete dockerized environment for **real-time carbon-aware load balancing** with HAProxy, WattTime API integration, and beautiful monitoring dashboards.
 
-## 📁 Essential Files (Only 4!)
+## 🏗️ **Complete System Architecture**
 
-1. **`.env`** - Your WattTime API credentials (you already have this)
-2. **`docker-compose.yml`** - Runs everything (3 servers + load balancer + carbon controller)
-3. **`haproxy.cfg`** - Load balancer settings (you already have this)
-4. **`carbon_controller.py`** - Gets carbon data and updates server weights
+### 🌐 **Services**
+- **3 Web Servers** (US West, Central, East) - `localhost:8001-8003`
+- **HAProxy Load Balancer** - `localhost:80` (main traffic)
+- **Weight Manager Dashboard** - `localhost:5000` 
+- **Weight Viewer App** - `localhost:5001`
+- **HAProxy Stats Dashboard** - `localhost:8404`
+- **HAProxy Dataplane API** - `localhost:5555`
+- **Carbon Controller** - Background service for auto-updates
 
-**Optional:** `test_green_cdn.py` - Test script to verify it's working
+## 🚀 **Quick Start**
 
-## 🚀 How to Run
+### 1. **Setup Environment**
+```bash
+cp env_example.txt .env
+# Edit .env with your WattTime credentials
+```
 
-Just 2 commands:
-
-```powershell
-# Start everything
+### 2. **Start All Services**
+```bash
 docker-compose up -d
-
-# Test it works
-python test_green_cdn.py
 ```
 
-That's it!
+### 3. **Access Dashboards**
+- **Weight Manager**: http://localhost:5000
+- **Weight Viewer**: http://localhost:5001  
+- **HAProxy Stats**: http://localhost:8404/stats
+- **Test Load Balancer**: http://localhost:80
 
-## 📊 Monitoring
+## ✨ **Features**
 
-- **Load Balancer**: http://localhost
-- **HAProxy Stats Dashboard**: http://localhost:8404
-- **Carbon Controller Logs**: `docker logs -f carbon-controller`
+### 🏆 **Weight Viewer App (Port 5001)**
+- Shows which server currently has the **highest weight**
+- Real-time traffic share percentages
+- Ranked list of all servers
+- Auto-refreshes every 30 seconds
+- Premium glassmorphism UI with live data
 
-## 🌍 How It Works
+### 📊 **Integrated HAProxy Dashboard**
+- Access HAProxy's built-in stats dashboard
+- Monitor real-time traffic distribution
+- View server health and connection stats
+- Available through Weight Manager or directly
 
-1. **Carbon Controller** fetches real-time carbon intensity data from WattTime API for different US regions:
-   - **US West (CAISO_NP)**: California - typically high renewable energy
-   - **US Central (ERCOT)**: Texas - moderate renewable energy  
-   - **US East (PJM)**: Mid-Atlantic - lower renewable energy
+### 🤖 **Continuous Carbon Controller**
+- Background service that automatically updates weights
+- 5-minute intervals for carbon intensity checks
+- Real WattTime data for California (CAISO_NORTH)
+- Simulated data for Texas and Mid-Atlantic regions
+- Automatic failover and error handling
 
-2. **Weight Calculation**: Servers in regions with lower carbon intensity get higher weights (more traffic)
+### 🐳 **Complete Docker Environment**
+- 3 echo servers representing different regions
+- Full HAProxy setup with dataplane API
+- Networked services for container communication
+- Production-ready configuration
 
-3. **Dynamic Updates**: HAProxy weights are updated every 5 minutes based on real carbon data
+## 🎯 **How It Works**
 
-## 🛠️ Configuration
+### **Carbon-Aware Routing**
+1. **WattTime API** provides real-time carbon intensity data
+2. **Carbon Controller** fetches data every 5 minutes
+3. **Weight Calculator** converts carbon data to HAProxy weights:
+   - **Lower carbon = Higher weight = More traffic**
+   - **Higher carbon = Lower weight = Less traffic**
+4. **HAProxy** routes traffic based on weights
+5. **Dashboards** show live results
 
-The system maps each server to a specific carbon intensity region:
+### **Server Regions**
+- **n1**: California (CAISO_NORTH) - **Real WattTime data**
+- **n2**: Texas (ERCOT) - **Simulated data** (500 base intensity)
+- **n3**: Mid-Atlantic (PJM) - **Simulated data** (700 base intensity)
 
-| Server | Region Code | Location | Typical Carbon Profile |
-|--------|-------------|----------|----------------------|
-| s1 | CAISO_NP | US West | Low (high renewables) |
-| s2 | ERCOT | US Central | Moderate |
-| s3 | PJM | US East | Higher (more fossil) |
+## 📱 **Dashboard Overview**
 
-## 🧪 Testing
+### **Weight Manager (localhost:5000)**
+- 🌱 **Carbon-Based Updates**: Auto-calculate weights from live carbon data
+- ⚖️ **Manual Weight Control**: Set individual server weights (1-256)
+- **Quick Presets**: Equal, West Heavy, Central Heavy, East Heavy, Reset
+- **Live Carbon Display**: See carbon intensity on each server card
+- **Dashboard Links**: Direct access to stats and viewer apps
+- **Toast Notifications**: Real-time feedback for all updates
 
-Run the test suite to verify load balancing:
+### **Weight Viewer (localhost:5001)**
+- 🏆 **Traffic Leader**: Shows server with highest weight
+- **Ranked List**: All servers sorted by weight
+- **Traffic Percentages**: Real-time distribution
+- **Auto-Refresh**: Updates every 30 seconds
+- **Premium UI**: Clean glassmorphism design with live stats
+
+### **HAProxy Stats (localhost:8404/stats)**
+- **Real-time Metrics**: Connections, response times, health
+- **Admin Controls**: Enable/disable servers, change weights
+- **Historical Data**: Server performance over time
+- **Health Monitoring**: Server status and alerts
+
+## 🔧 **Manual Testing**
+
+### **Test Carbon-Aware Routing**
+1. Go to **Weight Manager** (localhost:5000)
+2. Click **"🌱 Update Carbon Weights"**
+3. Watch weights change based on carbon intensity
+4. Check **Weight Viewer** (localhost:5001) to see new leader
+5. Test actual traffic: `curl http://localhost:80`
+
+### **Test Manual Weight Changes**
+1. Set **n1** weight to **200**, others to **50**
+2. Check **Weight Viewer** - n1 should be the leader
+3. Test traffic distribution with multiple requests
+4. View results in **HAProxy Stats**
+
+### **Test Different Presets**
+- **Equal** (50/50/50): Balanced distribution
+- **West Heavy** (100/30/20): California gets most traffic
+- **Central Heavy** (20/100/30): Texas gets most traffic
+- **East Heavy** (20/30/100): Mid-Atlantic gets most traffic
+
+## 🌱 **Carbon Data Sources**
+
+### **Real Data (California)**
+- Uses WattTime v3 API
+- Updates every 5 minutes
+- Actual grid carbon intensity
+
+### **Simulated Data (Texas & Mid-Atlantic)**
+- Realistic time-based patterns
+- Higher during day, lower at night
+- Random variation (±20%)
+- Baseline: Texas=500, Mid-Atlantic=700 lbs CO2/MWh
+
+## 🔄 **System Monitoring**
+
+### **Check All Services**
 ```bash
-python test_green_cdn.py
+docker-compose ps
 ```
 
-## 🛑 Cleanup
-
-Stop all services:
+### **View Logs**
 ```bash
-docker-compose down --remove-orphans
+# All services
+docker-compose logs -f
+
+# Specific service
+docker-compose logs -f carbon-controller
+docker-compose logs -f weight-manager
+docker-compose logs -f haproxy
 ```
 
-All Containerized on mynetwork:
-┌─────────────────────────────────────────┐
-│  Docker Bridge Network: mynetwork      │
-│                                         │
-│  ┌─────────┐  ┌─────────┐  ┌─────────┐ │
-│  │  web1   │  │  web2   │  │  web3   │ │
-│  │container│  │container│  │container│ │
-│  └─────────┘  └─────────┘  └─────────┘ │
-│       ▲            ▲            ▲      │
-│       └────────────┼────────────┘      │
-│                    │                   │
-│            ┌─────────────┐              │
-│            │   HAProxy   │              │
-│            │ (container) │              │
-│            └─────────────┘              │
-└─────────────────┬───────────────────────┘
-                  │
-            Host Ports 80 & 8404
+### **System Status API**
+```bash
+curl http://localhost:5000/system-status
+```
 
+## 🐛 **Troubleshooting**
 
-graph TD
-    A[Client Request] --> B[HAProxy Load Balancer]
-    
-    B --> C[Server 1<br/>US West California<br/>Weight: Dynamic]
-    B --> D[Server 2<br/>US Central Texas<br/>Weight: Dynamic] 
-    B --> E[Server 3<br/>US East Mid-Atlantic<br/>Weight: Dynamic]
-    
-    F[Carbon Controller] --> G[WattTime API v3]
-    F --> H[HAProxy Admin Socket]
-    
-    G --> I[Real Carbon Data<br/>CAISO_NORTH<br/>Free Account Access]
-    G --> J[Simulated Carbon Data<br/>Texas & PJM regions<br/>Realistic patterns]
-    
-    I --> K[Carbon Intensity<br/>lbs CO2/MWh]
-    J --> K
-    
-    K --> L[Weight Calculation Algorithm<br/>Lower Carbon = Higher Weight]
-    L --> M[Update HAProxy Weights<br/>Via Admin Socket]
-    M --> H
-    
-    H --> N[Dynamic Traffic Distribution<br/>More traffic to greener servers]
-    N --> B
-    
-    O[Every 5 Minutes] --> F
-    
-    style C fill:#90EE90
-    style D fill:#FFE4B5  
-    style E fill:#FFB6C1
-    style I fill:#90EE90
-    style J fill:#E6E6FA
-    style L fill:#87CEEB
+### **Services Not Starting**
+```bash
+# Check Docker status
+docker-compose ps
 
+# Restart specific service
+docker-compose restart haproxy
+docker-compose restart carbon-controller
+```
 
+### **No Carbon Data**
+- Check WattTime credentials in `.env`
+- Verify internet connectivity
+- Check carbon-controller logs: `docker-compose logs carbon-controller`
 
+### **Weight Changes Not Working**
+- Check HAProxy Dataplane API at `localhost:5555`
+- Verify all services are running: `docker-compose ps`
+- Check weight-manager logs: `docker-compose logs weight-manager`
 
-    FOR each server region:
-    1. Get carbon intensity (lbs CO2/MWh)
-       - Server 1: REAL data from WattTime API (CAISO_NORTH)
-       - Server 2&3: SIMULATED data (realistic patterns)
-    
-    2. Calculate "green score" = Invert carbon intensity
-       - Lower carbon intensity = Higher green score
-    
-    3. Convert green score to HAProxy weight (1-256)
-       - Higher green score = Higher weight = More traffic
-    
-    4. Update HAProxy via admin socket
-    
-    5. Repeat every 5 minutes
-   
-   
-   docker compose down
-   docker compose up -d
-   Start-Sleep 15; docker logs --tail 25 carbon-controller
+## 🎨 **UI Features**
 
+### **Premium Design**
+- Clean glassmorphism interface
+- Minimal, essential emojis only
+- Professional color palette (white majority, green accents, minimal yellow)
+- Smooth animations and transitions
 
+### **Toast Notifications**
+- Real-time feedback for weight updates
+- Staggered display for multiple changes
+- Professional styling with glassmorphism effects
+- Auto-dismiss with manual close option
 
-
-Part 1: Start-Sleep 15
-What it does: Pauses execution for 15 seconds
-Why we need it: Gives the containers time to fully start up and initialize
-Think of it as: "Wait 15 seconds before doing the next thing"
-Part 2: ;
-What it does: Separates two commands in PowerShell
-Means: "Do the first command, then do the second command"
-Like saying: "First wait 15 seconds, THEN check the logs"
-Part 3: docker logs --tail 25 carbon-controller
-docker logs: Get the log output from a Docker container
---tail 25: Only show the last 25 lines (most recent entries)
-carbon-controller: The name of our container we want logs from
+### **Responsive Layout**
+- Works on desktop and mobile
+- Adaptive card layouts
+- Touch-friendly controls
+- Progressive enhancement
