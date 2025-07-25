@@ -707,6 +707,9 @@
                 <a href="http://localhost:5001" target="_blank" class="header-link">
                     Weight Viewer
                 </a>
+                <a href="http://localhost:5002" target="_blank" class="header-link">
+                    Experiment
+                </a>
             </div>
         </div>
         
@@ -764,7 +767,7 @@
             {% for server in servers %}
             <div class="server-card">
                 <div class="server-name">
-                    {{ server.name }}
+                    {{ 'SERVER1' if server.name == 'n1' else 'SERVER2' if server.name == 'n2' else 'SERVER3' if server.name == 'n3' else server.name }}
                 </div>
                 <div class="server-details">
                     {{ server.address }}:{{ server.port }}
