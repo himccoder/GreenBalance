@@ -101,6 +101,23 @@ services:
     depends_on:
       - haproxy
       - weight-manager
+  
+  experiment:
+    build:
+      context: .
+      dockerfile: Dockerfile.experiment
+    container_name: experiment
+    ports:
+      - "5003:5003"
+    volumes:
+      - ".:/app"
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - greencdn_network
+    depends_on:
+      - haproxy
+      - weight-manager
 
   # Carbon controller (continuous weight updates)
   carbon-controller:

@@ -81,7 +81,7 @@
             transition: border-color 0.3s ease;
             margin-top: 20px;
         }
-
+        
         #server-count {
             max-width: 150px;
         }
@@ -119,8 +119,28 @@
             font-weight: 600;
             color: #1b5e20;
             margin-bottom: 1rem;
-            font-size: 1.6rem;s
+            font-size: 1.6rem;
             text-shadow: 0 1px 3px rgba(27, 94, 32, 0.1);
+        }
+
+        .capacity-input {
+            width: 100%;
+            max-width: 100%;
+            padding: 0.45rem 0.8rem;
+            font-size: 1rem;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            border: 1.5px solid rgba(34, 139, 34, 0.35);
+            border-radius: 12px;
+            box-sizing: border-box;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            color: #1a1a1a;
+            margin-top: 0.5rem;
+        }
+
+        .capacity-input:focus {
+            outline: none;
+            border-color: #4caf50;
+            box-shadow: 0 0 8px #81c784;
         }
 
         .server p {
@@ -258,42 +278,44 @@
                 serverDiv.innerHTML = ` <div class="server-name">Server ${i}</div>
                                         <select class="region-select">
                                             <option value="" disabled selected>Select Region</option>
-                                            <option value="us-cal-banc">US CAL BANC</option>
-                                            <option value="us-cal-ciso">US CAL CISO</option>
-                                            <option value="us-cal-iid">US CAL IID</option>
-                                            <option value="us-car-cple">US CAR CPLE</option>
-                                            <option value="us-car-cplw">US CAR CPLW</option>
-                                            <option value="us-car-duk">US CAR DUK</option>
-                                            <option value="us-car-sc">US CAR SC</option>
-                                            <option value="us-car-sceg">US CAR SCEG</option>
-                                            <option value="us-cent-swpp">US CENT SWPP</option>
-                                            <option value="us-fla-fmpp">US FLA FMPP</option>
-                                            <option value="us-fla-fpc">US FLA FPC</option>
-                                            <option value="us-fla-fpl">US FLA FPL</option>
-                                            <option value="us-fla-gvl">US FLA GVL</option>
-                                            <option value="us-fla-jea">US FLA JEA</option>
-                                            <option value="us-fla-sec">US FLA SEC</option>
-                                            <option value="us-fla-tal">US FLA TAL</option>
-                                            <option value="us-fla-tec">US FLA TEC</option>
-                                            <option value="us-mida-pjm">US MIDA PJM</option>
-                                            <option value="us-midw-aeci">US MIDW AECI</option>
-                                            <option value="us-midw-lgee">US MIDW LGEE</option>
-                                            <option value="us-midw-miso">US MIDW MISO</option>
-                                            <option value="us-ne-isne">US NE ISNE</option>
-                                            <option value="us-nw-nevp">US NW NEVP</option>
-                                            <option value="us-nw-pace">US NW PACE</option>
-                                            <option value="us-nw-pacw">US NW PACW</option>
-                                            <option value="us-nw-wacm">US NW WACM</option>
-                                            <option value="us-ny-nyis">US NY NYIS</option>
-                                            <option value="us-se-soco">US SE SOCO</option>
-                                            <option value="us-sw-azps">US SW AZPS</option>
-                                            <option value="us-sw-pnm">US SW PNM</option>
-                                            <option value="us-sw-srp">US SW SRP</option>
-                                            <option value="us-sw-tepc">US SW TEPC</option>
-                                            <option value="us-ten-tva">US TEN TVA</option>
-                                            <option value="us-tex-erco">US TEX ERCO</option>
+                                            <option value="US-CAL-BANC">US CAL BANC</option>
+                                            <option value="US-CAL-CISO">US CAL CISO</option>
+                                            <option value="US-CAL-IID">US CAL IID</option>
+                                            <option value="US-CAR-CPLE">US CAR CPLE</option>
+                                            <option value="US-CAR-CPLW">US CAR CPLW</option>
+                                            <option value="US-CAR-DUK">US CAR DUK</option>
+                                            <option value="US-CAR-SC">US CAR SC</option>
+                                            <option value="US-CAR-SCEG">US CAR SCEG</option>
+                                            <option value="US-CENT-SWPP">US CENT SWPP</option>
+                                            <option value="US-FLA-FMPP">US FLA FMPP</option>
+                                            <option value="US-FLA-FPC">US FLA FPC</option>
+                                            <option value="US-FLA-FPL">US FLA FPL</option>
+                                            <option value="US-FLA-GVL">US FLA GVL</option>
+                                            <option value="US-FLA-JEA">US FLA JEA</option>
+                                            <option value="US-FLA-SEC">US FLA SEC</option>
+                                            <option value="US-FLA-TAL">US FLA TAL</option>
+                                            <option value="US-FLA-TEC">US FLA TEC</option>
+                                            <option value="US-MIDA-PJM">US MIDA PJM</option>
+                                            <option value="US-MIDW-AECI">US MIDW AECI</option>
+                                            <option value="US-MIDW-LGEE">US MIDW LGEE</option>
+                                            <option value="US-MIDW-MISO">US MIDW MISO</option>
+                                            <option value="US-NE-ISNE">US NE ISNE</option>
+                                            <option value="US-NW-NEVP">US NW NEVP</option>
+                                            <option value="US-NW-PACE">US NW PACE</option>
+                                            <option value="US-NW-PACW">US NW PACW</option>
+                                            <option value="US-NW-WACM">US NW WACM</option>
+                                            <option value="US-NY-NYIS">US NY NYIS</option>
+                                            <option value="US-SE-SOCO">US SE SOCO</option>
+                                            <option value="US-SW-AZPS">US SW AZPS</option>
+                                            <option value="US-SW-PNM">US SW PNM</option>
+                                            <option value="US-SW-SRP">US SW SRP</option>
+                                            <option value="US-SW-TEPC">US SW TEPC</option>
+                                            <option value="US-TEN-TVA">US TEN TVA</option>
+                                            <option value="US-TEX-ERCO">US TEX ERCO</option>
                                         </select>
+                                        <input type="number" class="capacity-input" placeholder="Enter capacity" min="1" max="1000">
                                        `;
+                // fillInDropDown(serverDiv.querySelector('.region-select'));
 
                 serversDiv.appendChild(serverDiv);
             }
@@ -321,20 +343,355 @@
                     alert('Please fill in all fields');
                     return;
                 }
-                // Run the experiment with the specified parameters
-                console.log(`Running ${experimentType} experiment with ${numRequests} requests`);
-                const regions = Array.from(document.querySelectorAll('.region-select')).map(sel => sel.value);
-                if (regions.includes('') || regions.length !== count) {
+
+                // Gather regions and capacities
+                const servers = Array.from(document.querySelectorAll('.server')).map(server => {
+                    const select = server.querySelector('.region-select');
+                    const region = select ? select.value : '';
+                    const capacity = server.querySelector('.capacity-input').value;
+                    return { region, capacity };
+                });
+
+                if (servers.some(server => server.region === '') || servers.length !== count) {
                     alert('Please select a region for each server');
                     return;
                 }
-                runExperiment(numRequests, experimentType, count, regions);
+                runExperiment(numRequests, experimentType, count, servers);
             });
         });
 
-        function runExperiment(numRequests, experimentType, numServers, regions) {
-            // Placeholder function to simulate running the experiment
-            console.log('Experiment parameters:', { numRequests, experimentType, numServers, regions });
+        function fillInDropDown(selectElement) {
+            const data = [
+                {
+                    "provider": "google",
+                    "name": "Taiwan",
+                    "full_name": "Taiwan",
+                    "code": "asia-east1",
+                    "public": true,
+                    "country_code": "TW",
+                    "zones": ["asia-east1-b", "asia-east1-b", "asia-east1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Hong Kong",
+                    "full_name": "Hong Kong",
+                    "code": "asia-east2",
+                    "public": true,
+                    "country_code": "HK",
+                    "zones": ["asia-east2-b", "asia-east2-b", "asia-east2-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Tokyo",
+                    "full_name": "Tokyo",
+                    "code": "asia-northeast1",
+                    "public": true,
+                    "country_code": "JP-TK",
+                    "zones": ["asia-northeast1-a","asia-northeast1-b","asia-northeast1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Osaka",
+                    "full_name": "Osaka",
+                    "code": "asia-northeast2",
+                    "public": true,
+                    "country_code": "JP-KN",
+                    "zones": ["asia-northeast2-a","asia-northeast2-b","asia-northeast2-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Seoul",
+                    "full_name": "Seoul",
+                    "code": "asia-northeast3",
+                    "public": true,
+                    "country_code": "KR",
+                    "zones": ["asia-northeast3-a","asia-northeast3-b","asia-northeast3-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Mumbai",
+                    "full_name": "Mumbai",
+                    "code": "asia-south1",
+                    "public": true,
+                    "country_code": "IN-MH",
+                    "zones": ["asia-south1-a","asia-south1-b","asia-south1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Delhi",
+                    "full_name": "Delhi",
+                    "code": "asia-south2",
+                    "public": true,
+                    "country_code": "IN-DL",
+                    "zones": ["asia-south2-a","asia-south2-b","asia-south2-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Singapore",
+                    "full_name": "Singapore",
+                    "code": "asia-southeast1",
+                    "public": true,
+                    "country_code": "SG",
+                    "zones": ["asia-southeast1-a","asia-southeast1-b","asia-southeast1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Jakarta",
+                    "full_name": "Jakarta",
+                    "code": "asia-southeast2",
+                    "public": true,
+                    "country_code": "ID",
+                    "zones": ["asia-southeast2-a","asia-southeast2-b","asia-southeast2-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Sydnet",
+                    "full_name": "Sydney",
+                    "code": "australia-southeast1",
+                    "public": true,
+                    "country_code": "AUS-NSW",
+                    "zones": ["australia-southeast1-a","australia-southeast1-b","australia-southeast1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Melbourne",
+                    "full_name": "Melbourne",
+                    "code": "australia-southeast2",
+                    "public": true,
+                    "country_code": "AUS-VIC",
+                    "zones": ["australia-southeast2-a","australia-southeast2-b","australia-southeast2-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Warsaw",
+                    "full_name": "Warsaw",
+                    "code": "europe-central2",
+                    "public": true,
+                    "country_code": "PL",
+                    "zones": ["europe-central2-a","europe-central2-b","europe-central2-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Hamina",
+                    "full_name": "Finland",
+                    "code": "europe-north1",
+                    "public": true,
+                    "country_code": "FI",
+                    "zones": ["europe-north1-a","europe-north1-b","europe-north1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Madrid",
+                    "full_name": "Madrid",
+                    "code": "europe-southwest1",
+                    "public": true,
+                    "country_code": "ES",
+                    "zones": ["europe-southwest1-a","europe-southwest1-b","europe-southwest1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "St. Ghislain",
+                    "full_name": "Belgium",
+                    "code": "europe-west1",
+                    "public": true,
+                    "country_code": "BE",
+                    "zones": ["europe-west1-b", "europe-west1-c", "europe-west1-d"]
+                },
+                {
+                    "provider": "google",
+                    "name": "London",
+                    "full_name": "London",
+                    "code": "europe-west2",
+                    "public": true,
+                    "country_code": "GB",
+                    "zones": ["europe-west2-","europe-west2-","europe-west2-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Frankfurt",
+                    "full_name": "Frankfurt",
+                    "code": "europe-west3",
+                    "public": true,
+                    "country_code": "DE",
+                    "zones": ["europe-west3-a", "europe-west3-b", "europe-west3-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Eemshaven",
+                    "full_name": "Netherlands",
+                    "code": "europe-west4",
+                    "public": true,
+                    "country_code": "NL",
+                    "zones": ["europe-west4-a", "europe-west4-b", "europe-west4-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Zurich",
+                    "full_name": "Zurich",
+                    "code": "europe-west6",
+                    "public": true,
+                    "country_code": "CH",
+                    "zones": ["europe-west6-a", "europe-west6-b", "europe-west6-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Milan",
+                    "full_name": "Milan",
+                    "code": "europe-west8",
+                    "public": true,
+                    "country_code": "IT-NO",
+                    "zones": ["europe-west8-a", "europe-west8-b", "europe-west8-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Paris",
+                    "full_name": "Paris",
+                    "code": "europe-west9",
+                    "public": true,
+                    "country_code": "FR",
+                    "zones": ["europe-west9-a", "europe-west9-b", "europe-west9-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Montreal",
+                    "full_name": "Montreal",
+                    "code": "northamerica-northeast1",
+                    "public": true,
+                    "country_code": "CA-QC",
+                    "zones": ["northamerica-northeast1-a", "northamerica-northeast1-b", "northamerica-northeast1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Toronto",
+                    "full_name": "Toronto",
+                    "code": "northamerica-northeast2",
+                    "public": true,
+                    "country_code": "CA-ON",
+                    "zones": ["northamerica-northeast2-a", "northamerica-northeast2-b", "northamerica-northeast2-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Osasco",
+                    "full_name": "Sao Paulo",
+                    "code": "southamerica-east1",
+                    "public": true,
+                    "country_code": "BR-CS",
+                    "zones": ["southamerica-east1-a", "southamerica-east1-b", "southamerica-east1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Santiago",
+                    "full_name": "Santiago",
+                    "code": "southamerica-west1",
+                    "public": true,
+                    "country_code": "CL-SEN",
+                    "zones": ["southamerica-west1-a", "southamerica-west1-b", "southamerica-west1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Council Bluffs",
+                    "full_name": "Iowa",
+                    "code": "us-central1",
+                    "public": true,
+                    "country_code": "US-CENT-SWPP",
+                    "zones": ["us-central1-a", "us-central1-b", "us-central1-c", "us-central1-f"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Moncks Corner",
+                    "full_name": "South Carolina",
+                    "code": "us-east1",
+                    "public": true,
+                    "country_code": "US-CAR-SC",
+                    "zones": ["us-east1-b", "us-east1-c", "us-east1-d"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Ashburn",
+                    "full_name": "Virginia",
+                    "code": "us-east4",
+                    "public": true,
+                    "country_code": "US-MIDA-PJM",
+                    "zones": ["us-east4-a", "us-east4-b", "us-east4-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Columbus",
+                    "full_name": "Columbus",
+                    "code": "us-east5",
+                    "public": true,
+                    "country_code": "US-MIDA-PJM",
+                    "zones": ["us-east5-a", "us-east5-b", "us-east5-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Dallas",
+                    "full_name": "Dallas",
+                    "code": "us-south1",
+                    "public": true,
+                    "country_code": "US-TEX-ERCO",
+                    "zones": ["us-south1-a", "us-south1-b","us-south1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "The Dalles",
+                    "full_name": "Oregon",
+                    "code": "us-west1",
+                    "public": true,
+                    "country_code": "US-NW-PACW",
+                    "zones": ["us-west1-a", "us-west1-b", "us-west1-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Los Angeles",
+                    "full_name": "Los Angeles",
+                    "code": "us-west2",
+                    "public": true,
+                    "country_code": "US-CAL-CISO",
+                    "zones": ["us-west2-a", "us-west2-b", "us-west2-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Salt Lake City",
+                    "full_name": "Salt Lake City",
+                    "code": "us-west3",
+                    "public": true,
+                    "country_code": "US-NW-PACE",
+                    "zones": ["us-west3-a", "us-west3-b", "us-west3-c"]
+                },
+                {
+                    "provider": "google",
+                    "name": "Las Vegas",
+                    "full_name": "Las Vegas",
+                    "code": "us-west4",
+                    "public": true,
+                    "country_code": "US-NW-NEVP",
+                    "zones": ["us-west4-a", "us-west4-b", "us-west4-c"]
+                }
+            ];
+
+            data.forEach(location => {
+                if (location["country_code"].startsWith("US-")) {
+                    const option = document.createElement('option');
+                    option.value = location["code"].toUpperCase();
+                    option.textContent = `${location["full_name"]} (${location["code"]})`;
+                    selectElement.appendChild(option);
+                }
+            })
+        }
+
+        function runExperiment(numRequests, experimentType, numServers, servers) {
+            console.log('Experiment parameters:', { numRequests, experimentType, numServers, servers });
+            fetch('/run_experiment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    num_requests: numRequests,
+                    experiment_type: experimentType,
+                    num_servers: numServers,
+                    servers: servers
+                })
+            });
         }
     </script>
 </body>
