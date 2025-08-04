@@ -81,7 +81,7 @@
             transition: border-color 0.3s ease;
             margin-top: 20px;
         }
-        
+
         #server-count {
             max-width: 150px;
         }
@@ -691,6 +691,14 @@
                     num_servers: numServers,
                     servers: servers
                 })
+            }).then(response => response.json()).then(data => {
+                if (data.success) {
+                    console.log('Experiment run successfully:', data);
+                } else {
+                    console.error('Error running experiment:', data.message);
+                }
+            }).catch(error => {
+                console.error('Fetch error:', error);
             });
         }
     </script>
