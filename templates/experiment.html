@@ -82,7 +82,7 @@
             margin-top: 20px;
         }
 
-        #server_count {
+        #server-count {
             max-width: 150px;
         }
 
@@ -130,29 +130,87 @@
             user-select: none;
         }
 
-        button.start-btn,
-        button.stop-btn {
+        .experiment-options {
+            display: flex;
+            align-items: center;
+            gap: 5rem;
+            max-width: 600px;
+            margin: 2rem auto 0;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 139, 34, 0.15);
+            border-radius: 24px;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            padding: 1.5rem 2rem;
+        }
+
+        .experiment-options input#num-requests,
+        .experiment-options select#experiment-type {
+            display: block;
+            width: 250px;
+            max-width: 100%;
+            padding: 0.5rem 0.8rem;
+            border: 1.5px solid rgba(34, 139, 34, 0.35);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Inter', sans-serif;
+            box-sizing: border-box;
+        }
+
+        .experiment-options input#num-requests {
+            margin-bottom: 0.5rem;
+        }
+
+        .experiment-options > div {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        /* Wrap the input and select in a div to stack vertically */
+        .experiment-options > div.inputs-wrapper {
+            flex-grow: 1;
+        }
+
+        button#run-experiment {
             background: rgba(76, 175, 80, 0.15);
             border: 1.5px solid #4caf50;
             color: #2e7d32;
             font-weight: 600;
             font-size: 1rem;
-            padding: 0.45rem 1rem;
+            padding: 0.45rem 1.5rem;
             border-radius: 12px;
             cursor: pointer;
             transition: background-color 0.3s ease;
-            margin: 0.2rem 0.4rem;
             user-select: none;
-            width: 100px;
+            white-space: nowrap;
+            flex-shrink: 0;
         }
 
-        button.start-btn:hover {
+        button#run-experiment:hover {
             background-color: rgba(76, 175, 80, 0.3);
         }
-        button.stop-btn:hover {
-            background-color: rgba(200, 0, 0, 0.2);
-            border-color: #c62828;
-            color: #c62828;
+
+        /* Responsive: stack everything vertically on small screens */
+        @media (max-width: 520px) {
+            .experiment-options {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 1rem;
+            }
+
+            button#run-experiment {
+                width: 100%;
+                flex-shrink: initial;
+            }
+
+            .experiment-options > div.inputs-wrapper input#num-requests,
+            .experiment-options > div.inputs-wrapper select#experiment-type {
+                width: 100%;
+                margin-bottom: 0.5rem;
+            }
         }
 
         /* Responsive adjustments */
@@ -171,7 +229,7 @@
     <div class="header">
         <div class="title">Welcome!</div>
         <div class="instructions">Please select the number of servers.</div>
-        <select name="servers" id="server_count">
+        <select name="servers" id="server-count">
             <option value="" disabled selected></option>
             <option value="1">1</option>
             <option value="2">2</option>
@@ -186,8 +244,10 @@
         </select>
     </div>
     <div class="servers"></div>
+    <div class="experiment"></div>
+
     <script>
-        document.getElementById('server_count').addEventListener('change', function() {
+        document.getElementById('server-count').addEventListener('change', function() {
             const count = parseInt(this.value);
             const serversDiv = document.querySelector('.servers');
             serversDiv.innerHTML = ''; // Clear previous servers
@@ -237,6 +297,44 @@
 
                 serversDiv.appendChild(serverDiv);
             }
+
+            const experimentDiv = document.querySelector('.experiment');
+            experimentDiv.innerHTML = `
+                <div class="experiment-options">
+                    <div class="inputs-wrapper">
+                        <input type="number" id="num-requests" placeholder="Enter number of requests">
+                        <select id="experiment-type">
+                            <option value="" disabled selected>Select Experiment Type</option>
+                            <option value="baseline">Baseline</option>
+                            <option value="carbon-aware">Carbon-Aware</option>
+                        </select>
+                    </div>
+                    <button class="start-btn" id="run-experiment">Run Experiment</button>
+                </div>
+            `;
+
+            const runExperimentBtn = document.getElementById('run-experiment');
+            runExperimentBtn.addEventListener('click', () => {
+                const numRequests = document.getElementById('num-requests').value;
+                const experimentType = document.getElementById('experiment-type').value;
+                if (!numRequests || !experimentType) {
+                    alert('Please fill in all fields');
+                    return;
+                }
+                // Run the experiment with the specified parameters
+                console.log(`Running ${experimentType} experiment with ${numRequests} requests`);
+                const regions = Array.from(document.querySelectorAll('.region-select')).map(sel => sel.value);
+                if (regions.includes('') || regions.length !== count) {
+                    alert('Please select a region for each server');
+                    return;
+                }
+                runExperiment(numRequests, experimentType, count, regions);
+            });
         });
+
+        function runExperiment(numRequests, experimentType, numServers, regions) {
+            // Placeholder function to simulate running the experiment
+            console.log('Experiment parameters:', { numRequests, experimentType, numServers, regions });
+        }
     </script>
 </body>
