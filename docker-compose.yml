@@ -85,11 +85,11 @@ services:
       - weight-manager
 
   # Experiment
-  experiment:
+  calculator:
     build:
       context: .
-      dockerfile: Dockerfile.experiment
-    container_name: experiment
+      dockerfile: Dockerfile.calculator
+    container_name: calculator
     ports:
       - "5002:5002"
     volumes:

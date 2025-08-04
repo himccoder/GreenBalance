@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Experiment</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f2faf2;
+            min-height: 100vh;
+            color: #1a1a1a;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 1rem;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(34, 139, 34, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(76, 175, 80, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 255, 255, 0.8) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 139, 34, 0.15);
+            border-radius: 24px;
+            padding: 3rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        .header .title {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #2e7d32 0%, #4caf50 50%, #1b5e20 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 8px rgba(46, 125, 50, 0.2);
+        }
+
+        .header .instructions {
+            font-size: 1.25rem;
+            color: #424242;
+            opacity: 0.9;
+        }
+
+        .selector {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34, 139, 34, 0.15);
+            border-radius: 20px;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 300px;
+            text-align: center;
+        }
+
+        select#server_count {
+            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 12px;
+            border: 1.5px solid rgba(34, 139, 34, 0.35);
+            background: white;
+            width: 100%;
+            max-width: 100%;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
+        }
+
+        select#server_count:focus {
+            outline: none;
+            border-color: #4caf50;
+            box-shadow: 0 0 6px #81c784;
+        }
+
+        .servers {
+            width: 100%;
+            max-width: 800px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(240px,1fr));
+            gap: 1.5rem;
+        }
+
+        .server {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-radius: 20px;
+            padding: 1.5rem 2rem;
+            box-shadow:
+                0 8px 32px rgba(0, 0, 0, 0.06),
+                inset 0 1px 0 rgba(255, 255, 255, 1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .server h2 {
+            font-weight: 600;
+            color: #1b5e20;
+            margin-bottom: 1rem;
+            font-size: 1.6rem;
+            text-shadow: 0 1px 3px rgba(27, 94, 32, 0.1);
+        }
+
+        .server p {
+            color: #616161;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            user-select: none;
+        }
+
+        button.start-btn,
+        button.stop-btn {
+            background: rgba(76, 175, 80, 0.15);
+            border: 1.5px solid #4caf50;
+            color: #2e7d32;
+            font-weight: 600;
+            font-size: 1rem;
+            padding: 0.45rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin: 0.2rem 0.4rem;
+            user-select: none;
+            width: 100px;
+        }
+
+        button.start-btn:hover {
+            background-color: rgba(76, 175, 80, 0.3);
+        }
+        button.stop-btn:hover {
+            background-color: rgba(200, 0, 0, 0.2);
+            border-color: #c62828;
+            color: #c62828;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 600px) {
+            .servers {
+                grid-template-columns: 1fr;
+                max-width: 100%;
+            }
+            .header {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="title">Welcome!</div>
+        <div class="instructions">Please select the number of servers.</div>
+    </div>
+    <div class="selector">
+        <select name="servers" id="server_count">
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+            <option value="5">5</option>
+            <option value="6">6</option>
+            <option value="7">7</option>
+            <option value="8">8</option>
+            <option value="9">9</option>
+            <option value="10">10</option>
+        </select>
+    </div>
+    <div class="servers"></div>
+    <script>
+        document.getElementById('server_count').addEventListener('change', function() {
+            const count = parseInt(this.value);
+            const serversDiv = document.querySelector('.servers');
+            serversDiv.innerHTML = ''; // Clear previous servers
+
+            for (let i = 1; i <= count; i++) {
+                const serverDiv = document.createElement('div');
+                serverDiv.className = 'server';
+                serverDiv.innerHTML = `<h2>Server ${i}</h2>
+                                       <p>Status: <span class="status">Idle</span></p>
+                                       <button class="start-btn">Start</button>
+                                       <button class="stop-btn">Stop</button>`;
+                
+                // Add event listeners for start and stop buttons
+                serverDiv.querySelector('.start-btn').addEventListener('click', function() {
+                    serverDiv.querySelector('.status').textContent = 'Running';
+                });
+                
+                serverDiv.querySelector('.stop-btn').addEventListener('click', function() {
+                    serverDiv.querySelector('.status').textContent = 'Stopped';
+                });
+
+                serversDiv.appendChild(serverDiv);
+            }
+        });
+    </script>
+</body>

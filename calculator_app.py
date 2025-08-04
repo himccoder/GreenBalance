@@ -4,13 +4,13 @@ import math
 app = Flask(__name__)
 app.secret_key = 'change_this_secret_key'
 
-EXPERIMENT_TEMPLATE = """
+CALCULATOR_TEMPLATE = """
 <!DOCTYPE html>
 <html lang=\"en\">
 <head>
     <meta charset=\"UTF-8\" />
     <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\" />
-    <title>Experiment - Green CDN</title>
+    <title>Calculator - Green CDN</title>
     <script src=\"https://polyfill.io/v3/polyfill.min.js?features=es6\"></script>
     <script src=\"https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js\"></script>
     <style>
@@ -267,7 +267,7 @@ EXPERIMENT_TEMPLATE = """
 </head>
 <body>
     <div class=\"experiment-header\">
-        <div class=\"experiment-title\">Green CDN Load Balancing Experiment</div>
+        <div class=\"experiment-title\">Green CDN Load Balancing Calculator</div>
         <div class=\"experiment-desc\">
             Compare the environmental and operational impact of two load balancing strategies: <b>Round Robin</b> (baseline) and <b>Carbon-Aware</b>.<br>
             Enter the characteristics for each server and the total number of requests, then run the experiment to see the difference in total carbon emissions, cost, and latency.
@@ -316,7 +316,7 @@ EXPERIMENT_TEMPLATE = """
 @app.route('/', methods=['GET'])
 def experiment():
     servers = ['server1', 'server2', 'server3']
-    return render_template_string(EXPERIMENT_TEMPLATE, servers=servers, results=None)
+    return render_template_string(CALCULATOR_TEMPLATE, servers=servers, results=None)
 
 @app.route('/run_experiment', methods=['POST'])
 def run_experiment():
@@ -406,7 +406,7 @@ def run_experiment():
         <li>Latency Savings: {latency_savings:.2f} ms</li>
         </ul>
         """
-        return render_template_string(EXPERIMENT_TEMPLATE, servers=servers, results=results_html)
+        return render_template_string(CALCULATOR_TEMPLATE, servers=servers, results=results_html)
     except Exception as e:
         flash(f'Error: {e}', 'danger')
         return redirect(url_for('experiment'))
