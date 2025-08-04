@@ -29,8 +29,12 @@ def run_experiment():
     # Array of objects with region, capacity, and carbon intensity
     server_starter_data = []
     for server in servers:
-        # Read first carbon intensity from CSV file
-        carbon_intensity = read_carbon_intensity(server.get('region'), '2020-01-01 00:00:00+00:00') # Reads the first intensity
+        # Read first carbon intensity from CSV file or use 1 for baseline
+        carbon_intensity = None # Default if not found
+        if experiment_type == 'carbon_aware':
+            carbon_intensity = read_carbon_intensity(server.get('region'), '2020-01-01 00:00:00+00:00') # Reads the first intensity
+        else:
+            carbon_intensity = 1.0
         if carbon_intensity is None:
             return jsonify(success=False, message=f"Could not read first carbon intensity for region {server.get('region')}"), 400
 
@@ -40,6 +44,10 @@ def run_experiment():
             'carbon_intensity': carbon_intensity
         }
         server_starter_data.append(server)
+
+        # Set up servers using dataplane API
+
+        # Iterate over requests
 
     return jsonify(success=True, message="Experiment run successfully", data=server_starter_data)
 
