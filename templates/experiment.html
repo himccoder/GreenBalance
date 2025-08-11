@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <title>Experiment</title>
+    <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
@@ -117,7 +118,7 @@
 
         .server-name {
             font-weight: 600;
-            color: #1b5e20;
+            color: #2e7d32;
             margin-bottom: 1rem;
             font-size: 1.6rem;
             text-shadow: 0 1px 3px rgba(27, 94, 32, 0.1);
@@ -213,6 +214,51 @@
             background-color: rgba(76, 175, 80, 0.3);
         }
 
+        .results-card {
+            background: rgba(255,255,255,0.96);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.13);
+            padding: 1rem 2rem;
+            margin-top: 2.5rem;
+            width: 100%;
+            max-width: 900px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            font-size: 1.08rem;
+            color: #1a1a1a;
+        }
+
+        .results-card h2, .results-card h3 {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            color: #2e7d32;
+            font-weight: 700;
+            margin: 0.5rem 0;
+        }
+
+        .results-card table {
+            font-size: 1.08rem;
+            width: 100%;
+            margin-top: 0.7rem;
+            margin-bottom: 1.2rem;
+        }
+
+        .results-card th, .results-card td {
+            padding: 0.5rem 0.7rem;
+            text-align: center;
+        }
+
+        .results-card ul, .results-card li {
+            font-size: 1.05rem;
+        }
+
+        .legend-box {
+            background: #f2faf2;
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.2rem;
+            border: 1px solid #e0e0e0;
+            font-size: 1.01rem;
+        }
+
         /* Responsive: stack everything vertically on small screens */
         @media (max-width: 520px) {
             .experiment-options {
@@ -251,22 +297,22 @@
         <div class="instructions">Please select the number of servers.</div>
         <select name="servers" id="server-count">
             <option value="" disabled selected></option>
-            <option value="1">1</option>
-            <option value="2">2</option>
-            <option value="3">3</option>
-            <option value="4">4</option>
-            <option value="5">5</option>
-            <option value="6">6</option>
-            <option value="7">7</option>
-            <option value="8">8</option>
-            <option value="9">9</option>
-            <option value="10">10</option>
         </select>
     </div>
     <div class="servers"></div>
     <div class="experiment"></div>
-
+    <div class="results-card" id="results-mathjax" style="display: none;"></div>
     <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const numServersSelect = document.getElementById("server-count");
+            for (let i = 1; i <= 9; i++) {
+                const option = document.createElement("option");
+                option.value = i;
+                option.textContent = i;
+                numServersSelect.appendChild(option);
+            }
+        });
+
         document.getElementById('server-count').addEventListener('change', function() {
             const count = parseInt(this.value);
             const serversDiv = document.querySelector('.servers');
@@ -278,44 +324,45 @@
                 serverDiv.innerHTML = ` <div class="server-name">Server ${i}</div>
                                         <select class="region-select">
                                             <option value="" disabled selected>Select Region</option>
-                                            <option value="US-CAL-BANC">US CAL BANC</option>
-                                            <option value="US-CAL-CISO">US CAL CISO</option>
-                                            <option value="US-CAL-IID">US CAL IID</option>
-                                            <option value="US-CAR-CPLE">US CAR CPLE</option>
-                                            <option value="US-CAR-CPLW">US CAR CPLW</option>
-                                            <option value="US-CAR-DUK">US CAR DUK</option>
-                                            <option value="US-CAR-SC">US CAR SC</option>
-                                            <option value="US-CAR-SCEG">US CAR SCEG</option>
-                                            <option value="US-CENT-SWPP">US CENT SWPP</option>
-                                            <option value="US-FLA-FMPP">US FLA FMPP</option>
-                                            <option value="US-FLA-FPC">US FLA FPC</option>
-                                            <option value="US-FLA-FPL">US FLA FPL</option>
-                                            <option value="US-FLA-GVL">US FLA GVL</option>
-                                            <option value="US-FLA-JEA">US FLA JEA</option>
-                                            <option value="US-FLA-SEC">US FLA SEC</option>
-                                            <option value="US-FLA-TAL">US FLA TAL</option>
-                                            <option value="US-FLA-TEC">US FLA TEC</option>
-                                            <option value="US-MIDA-PJM">US MIDA PJM</option>
-                                            <option value="US-MIDW-AECI">US MIDW AECI</option>
-                                            <option value="US-MIDW-LGEE">US MIDW LGEE</option>
-                                            <option value="US-MIDW-MISO">US MIDW MISO</option>
-                                            <option value="US-NE-ISNE">US NE ISNE</option>
-                                            <option value="US-NW-NEVP">US NW NEVP</option>
-                                            <option value="US-NW-PACE">US NW PACE</option>
-                                            <option value="US-NW-PACW">US NW PACW</option>
-                                            <option value="US-NW-WACM">US NW WACM</option>
-                                            <option value="US-NY-NYIS">US NY NYIS</option>
-                                            <option value="US-SE-SOCO">US SE SOCO</option>
-                                            <option value="US-SW-AZPS">US SW AZPS</option>
-                                            <option value="US-SW-PNM">US SW PNM</option>
-                                            <option value="US-SW-SRP">US SW SRP</option>
-                                            <option value="US-SW-TEPC">US SW TEPC</option>
-                                            <option value="US-TEN-TVA">US TEN TVA</option>
-                                            <option value="US-TEX-ERCO">US TEX ERCO</option>
                                         </select>
                                         <input type="number" class="capacity-input" placeholder="Enter capacity" min="1" max="1000">
                                        `;
-                // fillInDropDown(serverDiv.querySelector('.region-select'));
+                fillInDropDown(serverDiv.querySelector('.region-select'));
+
+                                            // <option value="US-CAL-BANC">US CAL BANC</option>
+                                            // <option value="US-CAL-CISO">US CAL CISO</option>
+                                            // <option value="US-CAL-IID">US CAL IID</option>
+                                            // <option value="US-CAR-CPLE">US CAR CPLE</option>
+                                            // <option value="US-CAR-CPLW">US CAR CPLW</option>
+                                            // <option value="US-CAR-DUK">US CAR DUK</option>
+                                            // <option value="US-CAR-SC">US CAR SC</option>
+                                            // <option value="US-CAR-SCEG">US CAR SCEG</option>
+                                            // <option value="US-CENT-SWPP">US CENT SWPP</option>
+                                            // <option value="US-FLA-FMPP">US FLA FMPP</option>
+                                            // <option value="US-FLA-FPC">US FLA FPC</option>
+                                            // <option value="US-FLA-FPL">US FLA FPL</option>
+                                            // <option value="US-FLA-GVL">US FLA GVL</option>
+                                            // <option value="US-FLA-JEA">US FLA JEA</option>
+                                            // <option value="US-FLA-SEC">US FLA SEC</option>
+                                            // <option value="US-FLA-TAL">US FLA TAL</option>
+                                            // <option value="US-FLA-TEC">US FLA TEC</option>
+                                            // <option value="US-MIDA-PJM">US MIDA PJM</option>
+                                            // <option value="US-MIDW-AECI">US MIDW AECI</option>
+                                            // <option value="US-MIDW-LGEE">US MIDW LGEE</option>
+                                            // <option value="US-MIDW-MISO">US MIDW MISO</option>
+                                            // <option value="US-NE-ISNE">US NE ISNE</option>
+                                            // <option value="US-NW-NEVP">US NW NEVP</option>
+                                            // <option value="US-NW-PACE">US NW PACE</option>
+                                            // <option value="US-NW-PACW">US NW PACW</option>
+                                            // <option value="US-NW-WACM">US NW WACM</option>
+                                            // <option value="US-NY-NYIS">US NY NYIS</option>
+                                            // <option value="US-SE-SOCO">US SE SOCO</option>
+                                            // <option value="US-SW-AZPS">US SW AZPS</option>
+                                            // <option value="US-SW-PNM">US SW PNM</option>
+                                            // <option value="US-SW-SRP">US SW SRP</option>
+                                            // <option value="US-SW-TEPC">US SW TEPC</option>
+                                            // <option value="US-TEN-TVA">US TEN TVA</option>
+                                            // <option value="US-TEX-ERCO">US TEX ERCO</option>
 
                 serversDiv.appendChild(serverDiv);
             }
@@ -335,8 +382,8 @@
                 </div>
             `;
 
-            const runExperimentBtn = document.getElementById('run-experiment');
-            runExperimentBtn.addEventListener('click', () => {
+            const runCalculatorBtn = document.getElementById('run-experiment');
+            runCalculatorBtn.addEventListener('click', () => {
                 const numRequests = document.getElementById('num-requests').value;
                 const experimentType = document.getElementById('experiment-type').value;
                 if (!numRequests || !experimentType) {
@@ -358,6 +405,10 @@
                 }
                 runExperiment(numRequests, experimentType, count, servers);
             });
+
+            const resultsDiv = document.querySelector('.results-card');
+            resultsDiv.innerHTML = '';
+            resultsDiv.style.display = 'none';
         });
 
         function fillInDropDown(selectElement) {
@@ -673,7 +724,7 @@
             data.forEach(location => {
                 if (location["country_code"].startsWith("US-")) {
                     const option = document.createElement('option');
-                    option.value = location["code"].toUpperCase();
+                    option.value = location["country_code"].toUpperCase();
                     option.textContent = `${location["full_name"]} (${location["code"]})`;
                     selectElement.appendChild(option);
                 }
@@ -691,11 +742,55 @@
                     num_servers: numServers,
                     servers: servers
                 })
-            }).then(response => response.json()).then(data => {
+            })
+            .then(response => response.json()).then(data => {
                 if (data.success) {
                     console.log('Experiment run successfully:', data);
+                    const resultsDiv = document.querySelector('.results-card');
+                    resultsDiv.innerHTML = data.results;
+                    resultsDiv.style.display = 'block';
+                    MathJax.typesetPromise([resultsDiv]);
                 } else {
                     console.error('Error running experiment:', data.message);
+                    const resultsDiv = document.querySelector('.results-card');
+                    resultsDiv.innerHTML = `
+                        <h2 style="color: red">Experiment Failed</h2>
+                        ${data.message}
+                        `;
+                    resultsDiv.style.display = 'block';
+                }
+            }).catch(error => {
+                console.error('Fetch error:', error);
+            });
+        }
+
+        function runCalculator(numRequests, experimentType, numServers, servers) {
+            console.log('Experiment parameters:', { numRequests, experimentType, numServers, servers });
+            fetch('/run_calculator', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    num_requests: numRequests,
+                    experiment_type: experimentType,
+                    num_servers: numServers,
+                    servers: servers
+                })
+            })
+            .then(response => response.json()).then(data => {
+                if (data.success) {
+                    console.log('Experiment run successfully:', data);
+                    const resultsDiv = document.querySelector('.results-card');
+                    resultsDiv.innerHTML = data.results;
+                    resultsDiv.style.display = 'block';
+                    MathJax.typesetPromise([resultsDiv]);
+                } else {
+                    console.error('Error running experiment:', data.message);
+                    const resultsDiv = document.querySelector('.results-card');
+                    resultsDiv.innerHTML = `
+                        <h2 style="color: red">Experiment Failed</h2>
+                        ${data.message}
+                        `;
+                    resultsDiv.style.display = 'block';
                 }
             }).catch(error => {
                 console.error('Fetch error:', error);
