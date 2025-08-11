@@ -46,7 +46,111 @@ Notes to make simulation meaningful
 - **HAProxy Dataplane API** - `localhost:5555`
 - **Carbon Controller** - Background service for auto-updates
 
+### System Diagram
+
+```mermaid
+flowchart LR
+  subgraph "Client"
+    U["User Browser"]
+  end
+
+  subgraph "Network (HAProxy)"
+    LB["HAProxy Load Balancer (:80)"]
+    DP["HAProxy Dataplane API (:5555)"]
+    ST["HAProxy Stats (:8404)"]
+  end
+
+  subgraph "Apps (Flask)"
+    WM["Weight Manager (:5000)"]
+    WV["Weight Viewer (:5001)"]
+    EXP["Experiment (:5002)"]
+    CC["Carbon Controller (service)"]
+    HS["Historical Simulation (in Weight Manager)"]
+  end
+
+  subgraph "Backend"
+    S1["Server n1 (:8001)"]
+    S2["Server n2 (:8002)"]
+    S3["Server n3 (:8003)"]
+  end
+
+  subgraph "Data"
+    WT["WattTime API"]
+    HD["HistoricalData/*.csv"]
+  end
+
+  U --> LB
+  LB --> S1
+  LB --> S2
+  LB --> S3
+
+  WM <---> DP
+  WV --> DP
+  EXP --> DP
+  CC --> DP
+  HS --> DP
+  WM --> ST
+
+  CC --> WT
+  HS --> HD
+```
+
 ## 🚀 **Quick Start**
+
+### Prerequisites
+- **Docker Desktop** (required): install for your OS → [Docker Desktop](https://www.docker.com/products/docker-desktop/)
+- **Git** (optional, to clone): [Git](https://git-scm.com/downloads)
+- **Make** (optional, Linux/macOS): typically preinstalled; otherwise via your package manager
+- Shell: Bash (Linux/macOS) or PowerShell (Windows)
+
+### Step-by-step (Playground)
+1) Clone and enter the project directory
+```bash
+git clone https://github.com/your-org/greenCDN.git
+cd greenCDN
+```
+
+2) Create `.env` (demo defaults) and optionally set WattTime credentials
+```bash
+cp env_example.txt .env
+# Then edit .env to add:
+# WATTTIME_USERNAME=your_username
+# WATTTIME_PASSWORD=your_password
+```
+
+3) Start with the helper scripts
+- Linux/macOS
+```bash
+chmod +x scripts/playground.sh
+scripts/playground.sh
+```
+- Windows PowerShell
+```powershell
+scripts/playground.ps1
+```
+
+Alternative: start manually
+```bash
+# Compose directly
+docker-compose up -d
+
+# Or Make (Linux/macOS)
+make build && make up
+```
+
+4) Access dashboards
+- Weight Manager: http://localhost:5000
+- Weight Viewer: http://localhost:5001
+- HAProxy Stats: http://localhost:8404/stats
+- Test Load Balancer: http://localhost:80
+- Historical Simulation: http://localhost:5000/historical-simulation
+
+5) Stop / clean up
+```bash
+docker-compose down
+# or
+make down
+```
 
 ### 1. **Setup Environment**
 ```bash
@@ -249,47 +353,3 @@ docker-compose restart carbon-controller
 - Progressive enhancement
 
 
-flowchart LR
-  subgraph "Client"
-    U["User Browser"]
-  end
-
-  subgraph "Network (HAProxy)"
-    LB["HAProxy Load Balancer (:80)"]
-    DP["HAProxy Dataplane API (:5555)"]
-    ST["HAProxy Stats (:8404)"]
-  end
-
-  subgraph "Apps (Flask)"
-    WM["Weight Manager (:5000)"]
-    WV["Weight Viewer (:5001)"]
-    EXP["Experiment (:5002)"]
-    CC["Carbon Controller (service)"]
-    HS["Historical Simulation (in Weight Manager)"]
-  end
-
-  subgraph "Backend"
-    S1["Server n1 (:8001)"]
-    S2["Server n2 (:8002)"]
-    S3["Server n3 (:8003)"]
-  end
-
-  subgraph "Data"
-    WT["WattTime API"]
-    HD["HistoricalData/*.csv"]
-  end
-
-  U --> LB
-  LB --> S1
-  LB --> S2
-  LB --> S3
-
-  WM <---> DP
-  WV --> DP
-  EXP --> DP
-  CC --> DP
-  HS --> DP
-  WM --> ST
-
-  CC --> WT
-  HS --> HD
