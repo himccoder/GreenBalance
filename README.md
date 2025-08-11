@@ -247,3 +247,49 @@ docker-compose restart carbon-controller
 - Adaptive card layouts
 - Touch-friendly controls
 - Progressive enhancement
+
+
+flowchart LR
+  subgraph "Client"
+    U["User Browser"]
+  end
+
+  subgraph "Network (HAProxy)"
+    LB["HAProxy Load Balancer (:80)"]
+    DP["HAProxy Dataplane API (:5555)"]
+    ST["HAProxy Stats (:8404)"]
+  end
+
+  subgraph "Apps (Flask)"
+    WM["Weight Manager (:5000)"]
+    WV["Weight Viewer (:5001)"]
+    EXP["Experiment (:5002)"]
+    CC["Carbon Controller (service)"]
+    HS["Historical Simulation (in Weight Manager)"]
+  end
+
+  subgraph "Backend"
+    S1["Server n1 (:8001)"]
+    S2["Server n2 (:8002)"]
+    S3["Server n3 (:8003)"]
+  end
+
+  subgraph "Data"
+    WT["WattTime API"]
+    HD["HistoricalData/*.csv"]
+  end
+
+  U --> LB
+  LB --> S1
+  LB --> S2
+  LB --> S3
+
+  WM <---> DP
+  WV --> DP
+  EXP --> DP
+  CC --> DP
+  HS --> DP
+  WM --> ST
+
+  CC --> WT
+  HS --> HD
