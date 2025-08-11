@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Historical Simulation – Green CDN</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background:#f2faf2;
+            min-height:100vh;
+            color:#1a1a1a;
+            position:relative;
+            overflow-x:hidden;
+        }
+        body::before {
+            content:''; position:fixed; top:0; left:0; width:100%; height:100%;
+            background:
+                radial-gradient(circle at 20% 80%, rgba(34,139,34,0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(76,175,80,0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255,255,255,0.8) 0%, transparent 50%);
+            pointer-events:none; z-index:-1;
+        }
+        .container { max-width:1400px; margin:0 auto; padding:2rem; }
+        .header {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34,139,34,0.15);
+            border-radius: 24px;
+            padding: 2.5rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,1);
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before { content:''; position:absolute; inset:0; background:linear-gradient(135deg, rgba(34,139,34,0.05) 0%, transparent 50%); }
+        .header h1 {
+            font-size: 2.25rem; font-weight:700; margin-bottom:0.5rem;
+            background: linear-gradient(135deg, #2e7d32 0%, #4caf50 50%, #1b5e20 100%);
+            -webkit-background-clip:text; -webkit-text-fill-color:transparent; background-clip:text;
+        }
+        .section-title { font-size:1.25rem; font-weight:600; color:#1b5e20; margin-bottom:0.75rem; }
+        .section-description { color:#424242; margin-bottom:1rem; opacity:0.9; }
+        .glass-card {
+            background: rgba(255,255,255,0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(34,139,34,0.1);
+            border-radius: 16px;
+            padding: 1rem 1rem;
+            margin-bottom: 1.25rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,1);
+        }
+        .controls { display:flex; gap:1rem; flex-wrap:wrap; align-items:flex-end; justify-content:center; }
+        label {font-weight:600; color:#2e7d32; font-size:0.9rem;}
+        input, select { padding:0.6rem 0.75rem; border:1px solid #a5d6a7; border-radius:10px; background:rgba(255,255,255,0.95); }
+        .btn { background: rgba(34,139,34,0.1); border:1px solid rgba(34,139,34,0.2); color:#2e7d32; padding:0.7rem 1.2rem; border-radius:12px; cursor:pointer; font-weight:600; transition:all .2s ease; }
+        .btn:hover { background: rgba(34,139,34,0.15); transform: translateY(-1px); }
+        .btn-primary { background: rgba(76,175,80,0.1); border-color: rgba(76,175,80,0.25); }
+        .btn-danger { background: rgba(244,67,54,0.08); border-color: rgba(244,67,54,0.25); color:#c62828; }
+        .chart-box { padding:1rem; }
+        canvas { max-width:100%; height:360px; }
+        .description { font-size:0.9rem; color:#555; margin-top:0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Green CDN – Historical Simulation</h1>
+            <p class="section-description">Replay historical grid carbon intensity and visualize carbon‑aware routing decisions.</p>
+        </div>
+        <div class="glass-card">
+            <div class="section-title">Simulation Controls</div>
+            <form method="POST" action="/historical-simulation/start" class="controls">
+                <div>
+                    <label for="start_date">Start Date</label><br/>
+                    <input type="date" id="start_date" name="start_date" placeholder="auto">
+                </div>
+                <div>
+                    <label for="end_date">End Date</label><br/>
+                    <input type="date" id="end_date" name="end_date" placeholder="auto">
+                </div>
+                <div>
+                    <label for="requests_per_hour">Requests / hour</label><br/>
+                    <input type="number" id="requests_per_hour" name="requests_per_hour" value="1000" min="1" required>
+                </div>
+                <div>
+                    <label for="speed_multiplier">Speed (× realtime)</label><br/>
+                    <select id="speed_multiplier" name="speed_multiplier">
+                        <option value="1">1×</option>
+                        <option value="2" selected>2×</option>
+                        <option value="4">4×</option>
+                        <option value="8">8×</option>
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Start Simulation</button>
+                </div>
+            </form>
+            <form method="POST" action="/historical-simulation/stop" class="controls" style="justify-content:center; margin-top:0.5rem;">
+                <button type="submit" class="btn btn-danger">Stop Simulation</button>
+            </form>
+        </div>
+
+        <div class="glass-card chart-box">
+            <canvas id="carbonChart" aria-label="Regional carbon intensity over time"></canvas>
+            <div class="description">
+                Shows the grid carbon intensity for each region during the simulation window.
+                Lower values indicate greener electricity. Units: lbs CO₂/MWh.
+            </div>
+        </div>
+        <div class="glass-card chart-box">
+            <canvas id="weightChart" aria-label="HAProxy server weights over time"></canvas>
+            <div class="description">
+                HAProxy weight assigned to each server at each simulated hour. Higher weight means a
+                larger share of traffic is routed to that server (range 1–256). Lines are stepped to reflect discrete updates.
+            </div>
+        </div>
+        <div class="glass-card chart-box">
+            <canvas id="savingsChart" aria-label="Cumulative carbon saved"></canvas>
+            <div class="description">
+                Cumulative CO₂ saved vs. a naive round‑robin baseline, aggregated hour‑by‑hour since the simulation start.
+                Positive slope indicates the carbon‑aware policy is reducing emissions relative to round‑robin. Units: grams CO₂ (demo model).
+            </div>
+        </div>
+    </div>
+
+<script>
+let carbonChart, weightChart, savingsChart;
+const colors = {n1:'#2e7d32', n2:'#1976d2', n3:'#f57f17'};
+function initCharts() {
+    const ctx1 = document.getElementById('carbonChart').getContext('2d');
+    const ctx2 = document.getElementById('weightChart').getContext('2d');
+    const ctx3 = document.getElementById('savingsChart').getContext('2d');
+
+    carbonChart = new Chart(ctx1, {
+        type:'line',
+        data:{labels:[], datasets:[
+            {label:'n1 (CA)', data:[], borderColor:colors.n1, fill:false, tension:0.2},
+            {label:'n2 (NY)', data:[], borderColor:colors.n2, fill:false, tension:0.2},
+            {label:'n3 (TX)', data:[], borderColor:colors.n3, fill:false, tension:0.2},
+        ]},
+        options:{
+            plugins:{
+                title:{display:true, text:'Regional Carbon Intensity (lower is greener)'}
+            },
+            scales:{
+                x:{title:{display:true, text:'Simulation time'}},
+                y:{title:{display:true, text:'lbs CO₂/MWh'}, suggestedMin:0}
+            }
+        }
+    });
+
+    weightChart = new Chart(ctx2, {
+        type:'line',
+        data:{labels:[], datasets:[
+            {label:'n1 weight', data:[], borderColor:colors.n1, fill:false, stepped:true},
+            {label:'n2 weight', data:[], borderColor:colors.n2, fill:false, stepped:true},
+            {label:'n3 weight', data:[], borderColor:colors.n3, fill:false, stepped:true},
+        ]},
+        options:{
+            plugins:{
+                title:{display:true, text:'HAProxy Server Weights (discrete updates)'}
+            },
+            scales:{
+                x:{title:{display:true, text:'Simulation time'}},
+                y:{title:{display:true,text:'HAProxy weight (1–256)'}, suggestedMin:0, suggestedMax:256}
+            }
+        }
+    });
+
+    savingsChart = new Chart(ctx3, {
+        type:'line',
+        data:{labels:[], datasets:[
+            {label:'Cumulative CO₂ saved (g)', data:[], borderColor:'#4caf50', backgroundColor:'rgba(76,175,80,0.08)', fill:false}
+        ]},
+        options:{
+            plugins:{
+                title:{display:true, text:'Cumulative CO₂ Saved vs Round‑Robin (demo model)'}
+            },
+            scales:{
+                x:{title:{display:true, text:'Simulation time'}},
+                y:{title:{display:true, text:'grams CO₂ (lower is better)'}, beginAtZero:true}
+            }
+        }
+    });
+}
+
+function addPoint(chart, label, datasetIndex, value) {
+    chart.data.labels.push(label);
+    chart.data.datasets[datasetIndex].data.push(value);
+    chart.update('none');
+}
+
+let lastPointCount = 0;
+async function pollStatus() {
+    try {
+        const res = await fetch('/historical-simulation/status');
+        const data = await res.json();
+        if (!data || !data.results || !data.results.timeline) return;
+
+        const timeline = data.results.timeline;
+        if (timeline.length === lastPointCount) return; // nothing new
+
+        // append new points from lastPointCount
+        for (let i = lastPointCount; i < timeline.length; i++) {
+            const row = timeline[i];
+            const label = new Date(row.time).toLocaleString();
+            addPoint(carbonChart, label, 0, row.carbon_intensities.n1);
+            addPoint(carbonChart, label, 1, row.carbon_intensities.n2);
+            addPoint(carbonChart, label, 2, row.carbon_intensities.n3);
+
+            addPoint(weightChart, label, 0, row.weights.n1);
+            addPoint(weightChart, label, 1, row.weights.n2);
+            addPoint(weightChart, label, 2, row.weights.n3);
+
+            addPoint(savingsChart, label, 0, data.results.cumulative_carbon_saved);
+        }
+        lastPointCount = timeline.length;
+
+        if (!data.is_running) {
+            clearInterval(pollTimer);
+        }
+    } catch(err) { console.error(err); }
+}
+
+let pollTimer;
+document.addEventListener('DOMContentLoaded', () => {
+    initCharts();
+    pollStatus();
+    pollTimer = setInterval(pollStatus, 15000); // 15 seconds
+});
+</script>
+
+</body>
+</html>

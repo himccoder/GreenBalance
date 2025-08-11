@@ -14,12 +14,16 @@ from typing import Dict, Optional
 import random
 import math
 from dotenv import load_dotenv
+from simple_data_processor import get_simulation_engine
 
 # Load environment variables
 load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'test_secret_key'
+
+# Historical Simulation Engine (singleton)
+simulation_engine = get_simulation_engine()
 
 # Dataplane API configuration
 DATAPLANE_HOST = "haproxy"  # Use container name for Docker networking
@@ -167,7 +171,7 @@ class DataplaneAPI:
         """Change weight for a specific server"""
         try:
             # Get current config version
-            version = self.get_version()
+            version = self.get_version() #This is the version of the configuration
             if not version:
                 return False, "Could not get configuration version"
             
@@ -608,6 +612,49 @@ def system_status():
         pass
     
     return jsonify(status)
+
+# ---------------------------
+# Historical Simulation Routes
+# ---------------------------
+
+@app.route('/historical-simulation')
+def historical_simulation_page():
+    """Render historical simulation form and dashboard"""
+    return render_template('historical_simulation.html')
+
+@app.route('/historical-simulation/start', methods=['POST'])
+def start_historical_simulation():
+    """Start the historical simulation based on user inputs"""
+    start_date = request.form.get('start_date', 'auto') or 'auto'
+    end_date = request.form.get('end_date', 'auto') or 'auto'
+    requests_per_hour = int(request.form.get('requests_per_hour', 1000))
+    speed_multiplier = float(request.form.get('speed_multiplier', 2.0))
+
+    success = simulation_engine.start_simulation(
+        start_date=start_date,
+        end_date=end_date,
+        requests_per_hour=requests_per_hour,
+        speed_multiplier=speed_multiplier
+    )
+
+    if success:
+        flash('🚀 Historical simulation started!', 'success')
+    else:
+        flash('❌ Simulation could not be started (maybe already running?)', 'error')
+
+    return redirect(url_for('historical_simulation_page'))
+
+@app.route('/historical-simulation/stop', methods=['POST'])
+def stop_historical_simulation():
+    """Stop the running historical simulation"""
+    simulation_engine.stop_simulation()
+    flash('⏹️ Historical simulation stopped.', 'success')
+    return redirect(url_for('historical_simulation_page'))
+
+@app.route('/historical-simulation/status')
+def historical_simulation_status():
+    """Return current simulation status as JSON for front-end polling"""
+    return jsonify(simulation_engine.get_simulation_status())
 
 if __name__ == '__main__':
     print("🌱 Green CDN Manager - Starting Up")

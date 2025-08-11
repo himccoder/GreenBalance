@@ -1,6 +1,39 @@
 # 🌱 Green CDN - Carbon-Aware Load Balancing System
 
-A complete dockerized environment for **real-time carbon-aware load balancing** with HAProxy, WattTime API integration, and beautiful monitoring dashboards.
+Core: a green (carbon‑aware) load balancer that routes more traffic to cleaner regions.
+
+A complete environment for carbon‑aware load balancing with two complementary paths:
+
+- Real-Time Mode (WattTime API): live carbon intensity drives HAProxy weights now
+- Historical Simulation Mode (CSV): replays past data hour-by-hour and actually updates HAProxy weights via the Dataplane API to show how routing would have changed over time
+
+Quick highlights
+- HAProxy Dataplane API is used in both modes to set backend weights (higher weight → more traffic)
+- Historical Simulation includes a dashboard to monitor simulated time, real HAProxy weights, and cumulative carbon saved vs round-robin
+- Graphs include clear “what it shows” and “why it matters” explanations (see below)
+
+What makes it green
+- Carbon‑aware weights: lower grid carbon intensity → higher HAProxy weight → more traffic
+- Real data via WattTime (when configured) or historical CSV replay for demos
+- Transparent visuals to explain the environmental impact (carbon timeline, weights, cumulative savings)
+
+Historical Simulation (what’s included now)
+- Choose a date range within the CSV coverage (e.g., Dec 2022)
+- Pick requests-per-hour and simulation speed (e.g., 2×)
+- The engine replays the period hour-by-hour, computes carbon-aware weights, applies them to HAProxy, and tracks cumulative carbon savings
+
+Graph meanings (keep these in the UI so it’s clear)
+- Carbon Timeline (demo): hourly carbon intensity for a historical sample; daily cycles; lower values = cleaner periods
+- Renewable Energy (demo): historical renewable %; higher renewable share generally aligns with lower carbon intensity
+- Regional Comparison (demo): snapshot comparison of regional carbon intensity; highlights cleaner vs dirtier regions at a point in time
+- Pattern Analysis (demo): “typical day” curve using hourly averages; this is an average, not a prediction
+- Simulation Dashboard: shows actual HAProxy weights (live updates) and cumulative carbon saved vs round-robin (in kg)
+
+Notes to make simulation meaningful
+- Normalize timestamps (CSV vs selected dates) to the same timezone (UTC) to avoid “offset-naive vs offset-aware” errors
+- Use larger request totals (e.g., 1000+ per hour) to see clear distribution differences
+- Add more charts over time: carbon per region, request distribution over time, weight changes over time
+
 
 ## 🏗️ **Complete System Architecture**
 
@@ -26,11 +59,28 @@ cp env_example.txt .env
 docker-compose up -d
 ```
 
+Or use the included helpers:
+
+```bash
+# Linux/macOS
+scripts/playground.sh
+
+# Windows PowerShell
+scripts/playground.ps1
+
+# Make targets (Linux/macOS)
+make build
+make up
+make logs
+make down
+```
+
 ### 3. **Access Dashboards**
 - **Weight Manager**: http://localhost:5000
 - **Weight Viewer**: http://localhost:5001  
 - **HAProxy Stats**: http://localhost:8404/stats
 - **Test Load Balancer**: http://localhost:80
+ - **Historical Simulation Dashboard**: http://localhost:5000/historical-simulation
 
 ## ✨ **Features**
 
