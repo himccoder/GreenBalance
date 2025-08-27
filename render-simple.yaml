@@ -1,0 +1,17 @@
+# Simplified Render.com deployment
+services:
+  # Main Weight Manager App (standalone demo)
+  - type: web
+    name: green-cdn-demo
+    env: docker
+    dockerfilePath: ./Dockerfile.simple
+    plan: free
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PORT
+        value: 5000
+      - key: DATAPLANE_HOST
+        value: localhost
+    buildCommand: ""
+    startCommand: "python app.py"
