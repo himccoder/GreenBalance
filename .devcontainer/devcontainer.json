@@ -1,0 +1,50 @@
+{
+  "name": "Green CDN Demo",
+  "dockerComposeFile": ["../docker-compose.yml"],
+  "service": "weight-manager",
+  "workspaceFolder": "/app",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.flake8",
+        "ms-vscode.vscode-json"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+        "python.linting.enabled": true,
+        "python.linting.flake8Enabled": true
+      }
+    }
+  },
+  "forwardPorts": [5000, 5001, 80, 8404, 8001, 8002, 8003],
+  "portsAttributes": {
+    "5000": {
+      "label": "Weight Manager",
+      "onAutoForward": "openBrowser"
+    },
+    "5001": {
+      "label": "Weight Viewer",
+      "onAutoForward": "openBrowser"
+    },
+    "80": {
+      "label": "HAProxy Load Balancer"
+    },
+    "8404": {
+      "label": "HAProxy Stats"
+    },
+    "8001": {
+      "label": "Web Server 1 (California)"
+    },
+    "8002": {
+      "label": "Web Server 2 (Texas)"
+    },
+    "8003": {
+      "label": "Web Server 3 (Mid-Atlantic)"
+    }
+  },
+  "postCreateCommand": "echo '🌱 Green CDN is starting...' && make up",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+  }
+}

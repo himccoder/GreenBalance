@@ -1,0 +1,54 @@
+name: 🌱 Green CDN Demo
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-demo:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Create .env file
+      run: cp env_example.txt .env
+    
+    - name: Build and start services
+      run: |
+        docker compose build
+        docker compose up -d
+        
+    - name: Wait for services to be ready
+      run: |
+        echo "Waiting for services to start..."
+        sleep 30
+        
+    - name: Test Weight Manager
+      run: |
+        curl -f http://localhost:5000/ || exit 1
+        echo "✅ Weight Manager is running"
+        
+    - name: Test Weight Viewer  
+      run: |
+        curl -f http://localhost:5001/ || exit 1
+        echo "✅ Weight Viewer is running"
+        
+    - name: Test HAProxy Stats
+      run: |
+        curl -f http://localhost:8404/stats || exit 1
+        echo "✅ HAProxy Stats is running"
+        
+    - name: Test Load Balancer
+      run: |
+        curl -f http://localhost:80/ || exit 1
+        echo "✅ Load Balancer is working"
+        
+    - name: Show service status
+      run: docker compose ps
+      
+    - name: Show logs on failure
+      if: failure()
+      run: docker compose logs

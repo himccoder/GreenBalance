@@ -1,0 +1,77 @@
+# Render.com deployment configuration
+services:
+  # Main Weight Manager App
+  - type: web
+    name: green-cdn-manager
+    env: docker
+    dockerfilePath: ./Dockerfile.manager
+    plan: free
+    buildCommand: ""
+    startCommand: ""
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: FLASK_ENV
+        value: production
+      - key: PORT
+        value: 5000
+    domains:
+      - green-cdn-demo.onrender.com
+
+  # Weight Viewer
+  - type: web
+    name: green-cdn-viewer
+    env: docker
+    dockerfilePath: ./Dockerfile.viewer
+    plan: free
+    envVars:
+      - key: PYTHONUNBUFFERED
+        value: 1
+      - key: PORT
+        value: 5001
+    domains:
+      - green-cdn-viewer.onrender.com
+
+  # HAProxy (Background service)
+  - type: web
+    name: green-cdn-haproxy
+    env: docker
+    dockerCommand: haproxytech/haproxy-ubuntu:2.5
+    plan: free
+    envVars:
+      - key: PORT
+        value: 80
+
+  # Echo Servers
+  - type: web
+    name: green-cdn-web1
+    env: docker
+    dockerCommand: ealen/echo-server
+    plan: free
+    envVars:
+      - key: ECHO_SERVER_TEXT
+        value: "Hello from US West (California) - Low Carbon Server"
+      - key: PORT
+        value: 80
+
+  - type: web
+    name: green-cdn-web2
+    env: docker
+    dockerCommand: ealen/echo-server
+    plan: free
+    envVars:
+      - key: ECHO_SERVER_TEXT
+        value: "Hello from US Central (Texas) - Moderate Carbon Server"
+      - key: PORT
+        value: 80
+
+  - type: web
+    name: green-cdn-web3
+    env: docker
+    dockerCommand: ealen/echo-server
+    plan: free
+    envVars:
+      - key: ECHO_SERVER_TEXT
+        value: "Hello from US East (Mid-Atlantic) - Higher Carbon Server"
+      - key: PORT
+        value: 80
