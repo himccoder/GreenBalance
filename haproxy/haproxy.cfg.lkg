@@ -1,5 +1,5 @@
-# _md5hash=5329b899b0e46c47950a6e40a0c854d8
-# _version=1037
+# _md5hash=777cc5f72ca461577a21168f0aaf6282
+# _version=2142
 # Dataplaneapi managed File
 # changing file directly can cause a conflict if dataplaneapi is running
 
@@ -34,7 +34,7 @@ backend local_servers from unnamed_defaults_1
   # Dockerized web servers
   server n1 web1:80 check weight 50
   server n2 web2:80 check weight 256
-  server n3 web3:80 check weight 76
+  server n3 web3:80 check weight 139
 
 program api
   command /usr/bin/dataplaneapi --host 0.0.0.0 --port 5555 --haproxy-bin /usr/sbin/haproxy --config-file /usr/local/etc/haproxy/haproxy.cfg --reload-cmd "kill -SIGUSR2 1" --reload-delay 5 --restart-cmd "systemctl restart haproxy" --userlist haproxy-dataplaneapi

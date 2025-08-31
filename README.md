@@ -1,4 +1,4 @@
-# 🌱 Green CDN - Carbon-Aware Load Balancing System
+# 🌱 Green Balance - Carbon-Aware Load Balancing System
 
 Core: a green (carbon‑aware) load balancer that routes more traffic to cleaner regions.
 
